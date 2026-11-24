@@ -1,4 +1,4 @@
-# Sri Vaatsalya - School Management System (Full-Stack)
+# Sri Vaatsalya - intermediate Management System (Full-Stack)
 
 A complete, high-performance School Management System built with **Node.js**, **Express**, and **MongoDB / Document Store**, seamlessly wired to your vanilla HTML, CSS, and JavaScript frontend.
 
