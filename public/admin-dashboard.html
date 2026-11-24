@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sri Vaatsalya - Admin Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif}
+body{background:#f3f6fa;color:#243b53}
+button{border:0;border-radius:6px;padding:10px 14px;cursor:pointer;font-weight:600;transition:0.2s;}
+button:hover{opacity:0.9;}
+input,select,textarea{width:100%;padding:11px;border:1px solid #dce3eb;border-radius:6px;margin:7px 0 15px; font-family:inherit;}
+label{font-size:13px; font-weight:600; color:#334e68;}
+.sidebar{width:250px;background:#123f60;color:white;position:fixed;height:100vh;padding:22px 14px;overflow-y:auto; z-index:1000;}
+.logo{text-align:center;font-size:23px;font-weight:bold;color:#e9bd45;margin:10px 0 35px}
+.logo span{color:white}
+.sidebar p{font-size:11px;color:#9db8ca;margin:20px 10px 8px}
+.sidebar button{display:block;width:100%;text-align:left;background:transparent;color:white;padding:14px;margin:4px 0}
+.sidebar button:hover,.sidebar button.active{background:#285c7b;border-left:4px solid #e9bd45}
+.sidebar .logout{background:#d94a4a;margin-top:30px;text-align:center}
+main{margin-left:250px;padding:25px;width:calc(100% - 250px)}
+.topbar{background:white;padding:18px 22px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;flex-wrap:wrap;gap:10px; box-shadow:0 3px 12px #00000008;}
+.topbar small{color:#8293a4}
+.page{display:none}
+.page.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:22px}
+.stat{background:white;padding:22px;border-radius:12px;box-shadow:0 3px 12px #00000008}
+.stat .icon{font-size:27px}
+.stat p{font-size:13px;color:#8293a4;margin-top:12px}
+.stat h2{font-size:25px;margin-top:8px;color:#164e70}
+.card{background:white;padding:23px;border-radius:12px;margin-bottom:22px;box-shadow:0 3px 12px #00000008}
+.card h3{margin-bottom:18px;color:#164e70}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.primary{background:#164e70;color:white}
+.green{background:#169b6b;color:white}
+.gold{background:#e9bd45;color:#173b55}
+.red{background:#dc4b4b;color:white}
+.light{background:#e8f0f6;color:#164e70}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:600px;font-size:13px}
+th,td{text-align:left;padding:13px;border-bottom:1px solid #e7edf2}
+th{background:#f0f5f8;color:#31536b}
+.badge{background:#dcf5e8;color:#12804e;border-radius:20px;padding:5px 10px;font-size:11px; font-weight:bold;}
+.badge.pending{background:#fee2e2;color:#991b1b;}
+.badge.warning{background:#fef3c7;color:#92400e;}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* Notice Styles */
+.notice-card { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #123f60; border-radius: 8px; padding: 20px; margin-bottom: 15px; position: relative; transition: all 0.3s ease; }
+.notice-card.directive { border-left-color: #dc4b4b; background: #fffafb; }
+.notice-card h4 { color: #123f60; font-size: 16px; margin-bottom: 8px; }
+.notice-card p { color: #555; font-size: 14px; margin-bottom: 10px; line-height: 1.5; }
+.notice-meta { font-size: 12px; color: #888; display: flex; gap: 15px; align-items: center; margin-top: 10px;}
+.notice-meta span { display: flex; align-items: center; gap: 5px; }
+.notice-target { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; }
+
+/* Inline Forwarding Box */
+.forward-box { display: none; margin-top: 15px; padding: 15px; background: #fff1f2; border: 1px solid #fca5a5; border-radius: 8px; flex-direction: column; gap: 10px; }
+.forward-box label { color: #991b1b; font-weight: 700; font-size: 13px; margin-bottom: 0; }
+.forward-box select { margin: 0; padding: 10px 12px; border-color: #fca5a5; font-weight: 600; color: #991b1b; background: white; }
+.forward-box .btn-group { display: flex; gap: 10px; margin-top: 5px; }
+.forward-box button { padding: 10px 20px; font-size: 13px; flex: 1; }
+
+/* Readonly Input Styling */
+.locked-input { background-color: #e2e8f0; color: #64748b; cursor: not-allowed; font-weight: bold; }
+
+/* MONTHLY COLLECTION TARGET UPGRADED STYLES */
+.target-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; }
+.target-filters select, .target-filters input { margin: 0; }
+.target-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 22px; }
+.target-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 3px 12px #00000008; border-top: 4px solid #164e70; }
+.target-card.gold { border-top-color: #e9bd45; }
+.target-card.green { border-top-color: #169b6b; }
+.target-card.red { border-top-color: #dc4b4b; }
+.target-card h4 { font-size: 12px; color: #8293a4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.target-card h2 { font-size: 22px; color: #243b53; margin-bottom: 5px; }
+.target-card small { font-size: 12px; color: #8293a4; }
+.progress-container { width: 100%; height: 22px; background-color: #e2e8f0; border-radius: 20px; overflow: hidden; margin: 15px 0; }
+.progress-fill { height: 100%; background-color: #169b6b; width: 0%; border-radius: 20px; transition: width 1s ease-in-out; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold; }
+.progress-labels { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; font-weight: 600; }
+
+/* NEW FORM-BASED FILTER GRID (Dropdowns) */
+.filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
+.filter-group { display: flex; flex-direction: column; }
+.filter-group label { margin-bottom: 5px; font-size: 12px; color: #475569; font-weight: 700; }
+.filter-group select, .filter-group input { margin: 0; padding: 10px; background: #f8fafc; border: 1px solid #cbd5e1; font-weight: 500;}
+.search-bar { width: 100%; padding: 12px 15px; border: 1px solid #dce3eb; border-radius: 8px; font-size: 14px; margin: 0; }
+.search-row { display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 15px; }
+.search-row .search-bar { flex: 1; min-width: 0; }
+.search-clear-btn { flex: 0 0 auto; background: #e8f0f6; color: #164e70; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 18px; font-size: 14px; font-weight: 700; white-space: nowrap; }
+.search-clear-btn:hover { background: #dce8f1; opacity: 1; }
+@media(max-width:480px){ .search-row { gap: 6px; } .search-clear-btn { padding: 12px 10px; } }
+
+@media(max-width:950px){.cards, .target-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){
+.sidebar{width:65px;padding:10px 4px}
+.logo{font-size:0}
+.sidebar p{display:none}
+.sidebar button{font-size:0;text-align:center;padding:14px 3px}
+main{margin-left:65px;width:calc(100% - 65px);padding:12px}
+.cards, .target-grid{grid-template-columns:1fr}
+.formgrid{grid-template-columns:1fr}
+.target-filters, .filter-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="logo"><span>SRI</span> VAATSALYA</div>
+    <p>MAIN MENU</p>
+    <button class="active" onclick="showPage('dashboard',this)">📊 Dashboard</button>
+    <button onclick="showPage('notices',this)">📢 Notice Board</button>
+    <button onclick="showPage('students',this)">👨‍🎓 Student Management</button>
+    <button onclick="showPage('fees',this)">💰 Fee Management</button>
+    <button onclick="showPage('targets',this)">🎯 Monthly Collection Target</button>
+    <button onclick="showPage('attendance',this)">📅 Attendance</button>
+    <button onclick="showPage('results',this)">📚 Examination Results</button>
+    <button onclick="showPage('achievements',this)">🏆 Achievements</button>
+    <button onclick="showPage('gallery',this)">🖼️ Gallery Management</button>
+    <button class="logout" onclick="window.location.href='login.html'">↪ Logout</button>
+</aside>
+
+<main>
+<header class="topbar">
+    <div><h2 id="pageTitle">Admin Dashboard</h2><small id="adminCampusLabel" style="font-size: 13px;">Sri Vaatsalya Junior College</small></div>
+    <div style="display: flex; align-items: center; gap: 10px; background: #f0f7fc; padding: 10px 18px; border-radius: 30px; border: 1px solid #d4e7f5;">
+        <span style="font-size: 22px;">👤</span>
+        <strong style="color: #164e70; font-size: 19px; font-weight: 800; letter-spacing: 0.3px;" id="adminNameDisplay">Administrator</strong>
+    </div>
+</header>
+
+<section id="dashboard" class="page active">
+    <div class="cards">
+        <div class="stat"><div class="icon">👨‍🎓</div><p>Total Students</p><h2 id="totalStudents">0</h2></div>
+        <div class="stat"><div class="icon">💰</div><p>Total Fee Collection</p><h2 id="totalCollection">₹0</h2></div>
+        <div class="stat"><div class="icon">⏳</div><p>Pending Fees</p><h2 id="pendingFees">₹0</h2></div>
+        <div class="stat"><div class="icon">📅</div><p>Average Attendance</p><h2 id="averageAttendance">0%</h2></div>
+    </div>
+    <div class="card">
+        <h3>Welcome to Admin Dashboard</h3>
+        <p>Manage students, fees, attendance, examination results and college achievements from one place.</p>
+        <div class="actions">
+            <button class="primary" onclick="showPage('students')">Manage Students</button>
+            <button class="green" onclick="showPage('fees')">Manage Fees</button>
+            <button class="gold" onclick="showPage('notices')">Post Notice</button>
+        </div>
+    </div>
+    <div class="card">
+        <h3>Recent Students</h3>
+        <div class="tablewrap"><table><thead><tr><th>Student ID</th><th>Name</th><th>Course</th><th>Year</th></tr></thead><tbody id="recentStudents"></tbody></table></div>
+    </div>
+</section>
+
+<!-- ==================== NOTICE BOARD ==================== -->
+<section id="notices" class="page">
+    <div class="card" style="background: #fffafb; border: 1px solid #fca5a5;">
+        <h3 style="color: #991b1b;">⚠️ Directives from Administrator</h3>
+        <div id="directivesList"></div>
+    </div>
+
+    <div class="card" style="border-left: 5px solid #164e70;">
+        <h3>📢 Post Notice to Students</h3>
+        <p style="font-size:13px; margin-bottom:15px; color:#31536b;">Create announcements specific to your campus. You can target specific courses.</p>
+        
+        <label>Notice Title</label>
+        <input id="adminNoticeTitle" placeholder="e.g. Fee payment deadline extended">
+        
+        <label>Message Details</label>
+        <textarea id="adminNoticeDesc" rows="4" placeholder="Type the announcement here..."></textarea>
+
+        <div class="formgrid">
+            <div>
+                <label>Target Audience</label>
+                <select id="adminNoticeTarget">
+                    <option value="All Students">All Students (My Campus)</option>
+                    <option value="MPC Students">Only MPC Students</option>
+                    <option value="BiPC Students">Only BiPC Students</option>
+                    <option value="1st Year">Only 1st Year Students</option>
+                    <option value="2nd Year">Only 2nd Year Students</option>
+                </select>
+            </div>
+            <div>
+                <label>Priority</label>
+                <select id="adminNoticePriority">
+                    <option value="Normal">Normal Update</option>
+                    <option value="Important">Important / Action Required</option>
+                </select>
+            </div>
+        </div>
+        
+        <button class="primary" onclick="postAdminNotice()">Publish Notice</button>
+    </div>
+
+    <div class="card">
+        <h3>Active Notices (Sent to Students)</h3>
+        <div id="adminNoticeList"></div>
+    </div>
+</section>
+
+<section id="students" class="page">
+    <div class="card" style="background: #f0f5f8; border: 1px dashed #164e70;">
+        <h3>📥 Bulk Import Students (Excel / CSV)</h3>
+        <p style="font-size:13px; margin-bottom:15px; color:#31536b;">Upload an Excel or CSV file. <strong>Warning:</strong> This will replace all current students.</p>
+        <div class="actions">
+            <button class="light" onclick="downloadTemplate()"><i>⬇</i> 1. Download Template</button>
+            <label class="primary" style="display:inline-block; padding:10px 14px; border-radius:6px; cursor:pointer; margin:0;">
+                <i>⬆</i> 2. Upload Excel/CSV File
+                <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="importExcel(event)">
+            </label>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Add / Update Single Student</h3>
+        <input type="hidden" id="editId">
+        <div class="formgrid">
+            <div><label>Student ID</label><input id="sid" placeholder="e.g. STU111"></div>
+            <div><label>Student Name</label><input id="sname" placeholder="Enter name"></div>
+            <div><label>Date of Birth</label><input type="text" id="sdob" placeholder="YYYY-MM-DD or DD/MM/YYYY" onfocus="if(!this.value)this.type='date'" onblur="if(!this.value)this.type='text'"></div>
+            
+            <div>
+                <label>Gender</label>
+                <select id="sgender"><option>Male</option><option>Female</option></select>
+                <input type="text" id="sgenderLocked" class="locked-input" style="display:none;" disabled>
+            </div>
+
+            <div><label>Father's Name</label><input id="sfather" placeholder="Enter father's name"></div>
+            <div><label>Mother's Name</label><input id="smother" placeholder="Enter mother's name"></div>
+            <div><label>Contact Number</label><input id="sphone" placeholder="Enter phone number"></div>
+            <div><label>Previous School</label><input id="sschool" placeholder="Enter previous school"></div>
+            <div><label>Course</label>
+                <select id="course">
+                    <option>MPC - JEE Advanced</option><option>MPC - JEE Mains</option><option>MPC - EAPCET</option>
+                    <option>BiPC - NEET</option><option>BiPC - EAPCET</option>
+                </select>
+            </div>
+            <div><label>Year</label><select id="year"><option>1st Year</option><option>2nd Year</option></select></div>
+            <div><label>Campus</label><select id="campus"><option>Day Scholar</option><option>Girls Campus</option><option>Boys Campus</option></select></div>
+            <div><label>Transport</label><select id="transport"><option value="false">No</option><option value="true">Yes</option></select></div>
+            <div><label>Attendance (%)</label><input type="number" id="att" value="90"></div>
+        </div>
+        <div class="actions">
+            <button class="primary" onclick="saveStudent()">Save Student</button>
+            <button class="light" onclick="clearForm()">Clear</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Student Records</h3>
+        <input id="search" placeholder="Search by ID or Name" oninput="renderStudents()">
+        <div class="tablewrap">
+            <table><thead><tr><th>ID</th><th>Name</th><th>Course</th><th>Year</th><th>Campus</th><th>Attendance</th><th>Actions</th></tr></thead><tbody id="studentTable"></tbody></table>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== FEE MANAGEMENT (UPDATED TO DROPDOWNS) ==================== -->
+<section id="fees" class="page">
+    <!-- Update Single Fee Card -->
+    <div class="card">
+        <h3>Update Student Fee</h3>
+        <label for="feeStudent">Select Student</label>
+        <input type="text" id="feeStudent" list="feeStudentOptions"
+               placeholder="Type Student ID (e.g. SVC1)" autocomplete="off"
+               oninput="autofillFee()">
+        <datalist id="feeStudentOptions"></datalist>
+        <div class="formgrid">
+            <div><label>Total Annual Fee (₹)</label><input type="number" id="feeTotal" placeholder="Enter total fee"></div>
+            <div><label>Amount Paid (₹)</label><input type="number" id="feePaid" placeholder="Enter paid amount"></div>
+        </div>
+        <button class="primary" onclick="saveFee()">Update Fee Record</button>
+    </div>
+
+    <!-- NEW Global Fee Filter Section (Dropdowns) -->
+    <div class="card">
+        <h3>🔍 Global Fee Management & Filtering</h3>
+        <p style="font-size:13px; margin-bottom:15px; color:#31536b;">Filter by Campus, Year, Group, Examination, Term, and Payment Status.</p>
+        
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label>1. Select Campus</label>
+                <select id="feeFilterCampus" onchange="showGlobalFeeResults()">
+                    <option value="All Campuses">All Campuses</option>
+                    <option value="Sri Vaibhav Campus – Day Scholar">Sri Vaibhav Campus – Day Scholar</option>
+                    <option value="Sri Vaarahi Bhavan – Girls Campus & Hostel">Sri Vaarahi Bhavan – Girls Campus & Hostel</option>
+                    <option value="Sri Virinchi Bhavan – Boys Campus & Hostel">Sri Virinchi Bhavan – Boys Campus & Hostel</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>2. Select Academic Year</label>
+                <select id="feeFilterYear" onchange="showGlobalFeeResults()">
+                    <option value="All Years">All Years</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>3. Select Group</label>
+                <select id="feeFilterGroup" onchange="showGlobalFeeResults()">
+                    <option value="All Groups">All Groups</option>
+                    <option value="MPC">MPC</option>
+                    <option value="BiPC">BiPC</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>4. Select Examination</label>
+                <select id="feeFilterExam" onchange="showGlobalFeeResults()">
+                    <option value="All Exams">All Exams</option>
+                    <option value="JEE Mains">JEE Mains</option>
+                    <option value="JEE Advanced">JEE Advanced</option>
+                    <option value="EAPCET">EAPCET</option>
+                    <option value="NEET">NEET</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>5. Select Term</label>
+                <select id="feeFilterTerm" onchange="showGlobalFeeResults()">
+                    <option value="1">Term 1</option>
+                    <option value="2">Term 2</option>
+                    <option value="3">Term 3</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>6. Select Fee Status</label>
+                <select id="feeFilterStatus" onchange="showGlobalFeeResults()">
+                    <option value="All">All Statuses</option>
+                    <option value="Full Paid">Full Paid</option>
+                    <option value="Partially Paid">Partially Paid</option>
+                    <option value="Not Paid">Not Paid</option>
+                </select>
+            </div>
+        </div>
+        
+        <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button class="red" onclick="resetFeeFilters()">↺ Clear Filters</button>
+        </div>
+    </div>
+
+    <!-- Dynamic Fee Results Table -->
+    <div class="card">
+        <h3 id="feeTableTitle">Total Full Paid Students (Term 1): 0</h3>
+        <p style="font-size:13px; margin-bottom:15px; color:#64748b;" id="feeTableSubtitle">Full Paid Student List (Term 1)</p>
+        
+        <div class="search-row">
+            <input type="text" class="search-bar" id="feeSearchInput" placeholder="🔍 Search within results by ID or Name" oninput="searchFeeResults()">
+            <button type="button" class="search-clear-btn" onclick="clearFeeResults()">Clear</button>
+        </div>
+        
+        <div class="tablewrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Campus</th>
+                        <th>Total Fee</th>
+                        <th>Paid</th>
+                        <th>Due</th>
+                        <th>Fee Status</th>
+                        <th style="text-align:center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="feeTable"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== MONTHLY COLLECTION TARGET ==================== -->
+<section id="targets" class="page">
+    <div class="card">
+        <h3 style="margin-bottom: 15px;">Monthly Collection Target Dashboard</h3>
+        
+        <div class="target-filters">
+            <div>
+                <label>Campus</label>
+                <select id="tfCampus" onchange="updateCoachingDropdown(); calculateTargets();">
+                    <option value="All Campuses">All Campuses</option>
+                    <option value="Sri Vaibhav Campus – Day Scholar">Sri Vaibhav Campus – Day Scholar</option>
+                    <option value="Sri Vaarahi Bhavan – Girls Campus & Hostel">Sri Vaarahi Bhavan – Girls Campus & Hostel</option>
+                    <option value="Sri Virinchi Bhavan – Boys Campus & Hostel">Sri Virinchi Bhavan – Boys Campus & Hostel</option>
+                </select>
+            </div>
+            <div>
+                <label>Group</label>
+                <select id="tfGroup" onchange="updateCoachingDropdown(); calculateTargets();">
+                    <option value="All Groups">All Groups</option>
+                    <option value="MPC">MPC</option>
+                    <option value="BiPC">BiPC</option>
+                </select>
+            </div>
+            <div>
+                <label>Coaching Program</label>
+                <select id="tfCoaching" onchange="calculateTargets()">
+                    <option value="All Programs">All Programs</option>
+                </select>
+            </div>
+            <div>
+                <label>Term</label>
+                <select id="tfTerm" onchange="calculateTargets()">
+                    <option value="1">Term 1</option>
+                    <option value="2">Term 2</option>
+                    <option value="3">Term 3</option>
+                </select>
+            </div>
+            <div>
+                <label>Month / Year</label>
+                <input type="month" id="tfMonth" onchange="calculateTargets()" value="2024-01">
+            </div>
+        </div>
+
+        <div class="target-grid">
+            <div class="target-card">
+                <h4>Total Students</h4>
+                <h2 id="tgtTotalStudents">0</h2>
+            </div>
+            <div class="target-card gold">
+                <h4>Expected Collection</h4>
+                <h2 id="tgtExpected">₹0</h2>
+            </div>
+            <div class="target-card green">
+                <h4>Collected Amount</h4>
+                <h2 id="tgtCollected">₹0</h2>
+            </div>
+            <div class="target-card red">
+                <h4>Pending Collection</h4>
+                <h2 id="tgtPending">₹0</h2>
+            </div>
+        </div>
+        
+        <div class="target-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="target-card green">
+                <h4>Fully Paid</h4>
+                <h2 id="tgtFullyPaid">0</h2>
+                <small>Students</small>
+            </div>
+            <div class="target-card gold">
+                <h4>Partially Paid</h4>
+                <h2 id="tgtPartiallyPaid">0</h2>
+                <small>Students</small>
+            </div>
+            <div class="target-card red">
+                <h4>Not Paid</h4>
+                <h2 id="tgtNotPaid">0</h2>
+                <small>Students</small>
+            </div>
+        </div>
+
+        <div class="card" style="box-shadow: none; border: 1px solid #e2e8f0; margin-top: 20px; cursor: pointer;" onclick="openAdminCollectionsModal()" title="Click to view details by admin">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
+                <h3 style="margin:0;">Collection Progress <span style="font-size:12px;color:#0369a1;font-weight:500;">(Click for details)</span></h3>
+                <h3 style="margin:0; color: #169b6b;" id="tgtPercentage">0%</h3>
+            </div>
+            <div class="progress-container">
+                <div class="progress-fill" id="tgtProgressBar"></div>
+            </div>
+            <div class="progress-labels">
+                <span>Target: <strong id="tgtGoalLabel">₹0</strong></span>
+                <span>Remaining: <strong id="tgtRemainingLabel">₹0</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Campus-Wise Breakdown</h3>
+        <div class="tablewrap">
+            <table>
+                <thead><tr><th>Campus</th><th>Students</th><th>Expected Fee</th><th>Collected</th><th>Pending</th></tr></thead>
+                <tbody id="campusBreakdownTable"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Group & Coaching-Wise Breakdown</h3>
+        <div class="tablewrap">
+            <table>
+                <thead><tr><th>Group</th><th>Coaching Program</th><th>Students</th><th>Expected Collection</th><th>Collected</th><th>Pending</th></tr></thead>
+                <tbody id="groupBreakdownTable"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== ATTENDANCE (UPDATED TO DROPDOWNS) ==================== -->
+<section id="attendance" class="page">
+    <div class="card" style="background: #f0f5f8; border: 1px dashed #164e70;">
+        <h3>📥 Bulk Update Attendance (Excel / CSV)</h3>
+        <p style="font-size:13px; margin-bottom:15px; color:#31536b;">Upload a daily register with <strong>Student ID</strong> and <strong>Status</strong> (Present/Absent).</p>
+        <div class="actions">
+            <button class="light" onclick="downloadAttendanceTemplate()"><i>⬇</i> 1. Download Template</button>
+            <label class="primary" style="display:inline-block; padding:10px 14px; border-radius:6px; cursor:pointer; margin:0;">
+                <i>⬆</i> 2. Upload Attendance File
+                <input type="file" id="attendanceFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="importAttendanceExcel(event)">
+            </label>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Update Single Student Attendance</h3>
+        <label>Select Student</label><select id="attendanceStudent"></select>
+        <label>Attendance Percentage (%)</label><input type="number" id="attPercent" placeholder="e.g. 92">
+        <button class="primary" onclick="saveAttendance()">Save Attendance</button>
+    </div>
+
+    <!-- NEW Global Attendance Filter Section (Dropdowns + Range) -->
+    <div class="card">
+        <h3>👨‍🎓 Attendance Overview</h3>
+        <p style="font-size:13px; margin-bottom:15px; color:#31536b;">Filter students by Campus, Year, Group, Examination, or Attendance Range.</p>
+        
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label>Campus</label>
+                <select id="attFilterCampus" onchange="renderFilteredAttendance()">
+                    <option value="All Campuses">All Campuses</option>
+                    <option value="Sri Vaibhav Campus – Day Scholar">Sri Vaibhav Campus – Day Scholar</option>
+                    <option value="Sri Vaarahi Bhavan – Girls Campus & Hostel">Sri Vaarahi Bhavan – Girls Campus & Hostel</option>
+                    <option value="Sri Virinchi Bhavan – Boys Campus & Hostel">Sri Virinchi Bhavan – Boys Campus & Hostel</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Select Academic Year</label>
+                <select id="attFilterYear" onchange="renderFilteredAttendance()">
+                    <option value="All Years">All Years</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Select Group</label>
+                <select id="attFilterGroup" onchange="renderFilteredAttendance()">
+                    <option value="All Groups">All Groups</option>
+                    <option value="MPC">MPC</option>
+                    <option value="BiPC">BiPC</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Select Examination</label>
+                <select id="attFilterExam" onchange="renderFilteredAttendance()">
+                    <option value="All Exams">All Exams</option>
+                    <option value="JEE Mains">JEE Mains</option>
+                    <option value="JEE Advanced">JEE Advanced</option>
+                    <option value="EAPCET">EAPCET</option>
+                    <option value="NEET">NEET</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Attendance Range (%)</label>
+                <input type="text" id="attRangeInput" placeholder="Example: 60 - 70" oninput="renderFilteredAttendance()">
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button class="red" onclick="resetAttFilters()">↺ Reset Filters</button>
+        </div>
+    </div>
+
+    <!-- Dynamic Attendance Results Table -->
+    <div class="card">
+        <h3 id="attTableTitle">Total Students Found: 0</h3>
+        <p style="font-size:13px; margin-bottom:15px; color:#64748b;">Matching Student List</p>
+        
+        <div class="search-row">
+            <input type="text" class="search-bar" id="attSearchInput" placeholder="🔍 Search within results by ID or Name" oninput="renderFilteredAttendance()">
+            <button type="button" class="search-clear-btn" onclick="clearResultsSearch('attSearchInput', renderFilteredAttendance)">Clear</button>
+        </div>
+        
+        <div class="tablewrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Year</th>
+                        <th>Campus</th>
+                        <th>Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceTable"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section id="results" class="page">
+    <div class="card">
+        <h3>Add Examination Result</h3>
+        <label>Select Student</label><select id="resultStudent"></select>
+        <label>Examination Name</label><input id="examName" placeholder="e.g. JEE Mains Mock 3">
+        <label>Score</label><input id="score" placeholder="e.g. 195/300">
+        <button class="primary" onclick="saveResult()">Add Result</button>
+    </div>
+    <div class="card">
+        <h3>Examination Records</h3>
+        <div class="tablewrap">
+            <table><thead><tr><th>Student ID</th><th>Name</th><th>Exam</th><th>Score</th></tr></thead><tbody id="resultTable"></tbody></table>
+        </div>
+    </div>
+
+    <!-- BULK RESULTS UPLOAD -->
+    <div class="card" style="margin-top:20px;">
+        <h3>📤 Bulk Examination Results Upload</h3>
+        <p style="color:#64748b;font-size:13px;margin-bottom:14px;">Upload Excel/CSV to add exam results for multiple students. Required columns: <strong>Student ID, Student Name, Exam Name, Marks, Date</strong>.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+            <button class="primary" onclick="downloadResultsTemplate()">⬇ Download Template</button>
+            <label class="primary" style="cursor:pointer;background:#0d4e78;color:#fff;padding:8px 18px;border-radius:6px;font-weight:600;font-size:14px;display:inline-block;">
+                📂 Choose File
+                <input type="file" id="resultsFileInput" accept=".xlsx,.xls,.csv" style="display:none;" onchange="previewResultsFile(event)">
+            </label>
+        </div>
+        <div id="resultsPreviewArea" style="display:none;">
+            <div id="resultsPreviewTable" class="tablewrap" style="margin-bottom:12px;"></div>
+            <div id="resultsValidationMsg" style="margin-bottom:10px;font-size:13px;"></div>
+            <button class="green" onclick="submitBulkResults()">✅ Save All Valid Results</button>
+            <button onclick="cancelResultsUpload()" style="margin-left:8px;background:#e2e8f0;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+</section>
+
+<section id="achievements" class="page">
+    <div class="card">
+        <h3>✨ Add College Achievement</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+            <div><label style="font-weight:600;color:#555;font-size:13px;display:block;margin-bottom:5px;">Achievement Title</label><input id="achievementTitle" placeholder="e.g. JEE Mains AIR 1136" style="width:100%;box-sizing:border-box;"></div>
+            <div><label style="font-weight:600;color:#555;font-size:13px;display:block;margin-bottom:5px;">Description</label><input id="achievementDescription" placeholder="Enter description" style="width:100%;box-sizing:border-box;"></div>
+        </div>
+        <button class="primary" onclick="addAchievement()" style="padding:11px 28px;font-size:14px;">🏆 Add Achievement</button>
+    </div>
+    <div class="card">
+        <h3 style="display:flex;align-items:center;gap:8px;">🏆 College Achievements <span id="achievementCount" style="background:#e9bd45;color:#fff;font-size:12px;padding:2px 10px;border-radius:20px;font-weight:700;"></span></h3>
+        <div id="achievementList"></div>
+    </div>
+</section>
+</main>
+
+<script src="js/api.js?v=2.3"></script>
+<script>
+const COURSE_FEES = { 
+    "MPC - JEE Advanced": 150000, "MPC - JEE Mains": 125000, "MPC - EAPCET": 100000, "MPC - AP EAPCET": 100000, "MPC - eapset": 100000,
+    "BiPC - NEET": 150000, "BiPC - EAPCET": 100000, "BiPC - AP EAPCET": 100000, "BiPC - eapset": 100000 
+};
+const HOSTEL_FEE = 60000;
+const TRANSPORT_FEE = 15000;
+
+function normalizeCampus(rawCampus) {
+    if (!rawCampus) return "Sri Vaibhav Campus Day Scholar";
+    const v = String(rawCampus).toLowerCase().trim();
+    if (v.includes("vaarahi") || v.includes("girl")) return "Sri Vaarahi Girls Hostel";
+    if (v.includes("virinchi") || v.includes("boy")) return "Sri Virinchi Boys Hostel";
+    if (v.includes("vaibhav") || v.includes("day")) return "Sri Vaibhav Campus Day Scholar";
+    return rawCampus;
+}
+
+let storedAdminCampus = localStorage.getItem('loggedInAdminCampus') || localStorage.getItem('userCampus') || '';
+try {
+    const u = JSON.parse(localStorage.getItem('user') || '{}');
+    if (u && u.campus) storedAdminCampus = u.campus;
+} catch(e) {}
+
+let currentAdminCampus = normalizeCampus(storedAdminCampus);
+
+function lockCampusFilters() {
+    const campusSelects = ['feeFilterCampus', 'tfCampus', 'attFilterCampus', 'campus'];
+    campusSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerHTML = `<option value="${currentAdminCampus}">${currentAdminCampus}</option>`;
+            el.value = currentAdminCampus;
+            el.disabled = true;
+            el.style.backgroundColor = '#f1f5f9';
+            el.style.cursor = 'not-allowed';
+            el.style.fontWeight = 'bold';
+        }
+    });
+}
+
+function updateAdminHeader() {
+    let adminName = '';
+    try {
+        const uStr = localStorage.getItem('user');
+        if (uStr) {
+            const u = JSON.parse(uStr);
+            if (u && (u.name || u.username)) adminName = u.name || u.username;
+        }
+    } catch(e) {}
+
+    if (!adminName) {
+        adminName = localStorage.getItem('userName') || 
+                    localStorage.getItem('loggedInAdminName') || 
+                    localStorage.getItem('loggedInAdmin') || 
+                    'Administrator';
+    }
+
+    const el = document.getElementById('adminNameDisplay');
+    if (el) el.textContent = adminName;
+}
+updateAdminHeader();
+
+let allStudents = JSON.parse(localStorage.getItem("adminStudentsData") || "[]");
+let fees = JSON.parse(localStorage.getItem("adminFees") || "{}");
+let results = JSON.parse(localStorage.getItem("adminResults") || "[]");
+let achievements = JSON.parse(localStorage.getItem("adminAchievements") || "[]");
+
+let globalNotices = JSON.parse(localStorage.getItem("globalNotices") || "[]");
+let adminNotices = JSON.parse(localStorage.getItem("adminNotices") || "[]");
+
+function persist() {
+    localStorage.setItem("adminStudentsData", JSON.stringify(allStudents));
+    localStorage.setItem("adminFees", JSON.stringify(fees));
+    localStorage.setItem("adminResults", JSON.stringify(results));
+    localStorage.setItem("adminAchievements", JSON.stringify(achievements));
+    localStorage.setItem("adminNotices", JSON.stringify(adminNotices));
+}
+
+function clearResultsSearch(inputId, renderFunction) {
+    const searchInput = document.getElementById(inputId);
+    if (!searchInput) return;
+    searchInput.value = "";
+    renderFunction();
+    searchInput.focus();
+}
+
+function money(n) { return "₹" + Number(n || 0).toLocaleString("en-IN"); }
+
+function getGroupAndCoaching(courseString) {
+    if (!courseString) return { group: "Unknown", coaching: "Unknown" };
+    let parts = courseString.split(" - ");
+    let group = (parts[0] || "Unknown").trim();
+    let coaching = (parts[1] || "General").trim();
+    if (/^(AP\s+)?(EAPCET|EAPSET|EAMCET)$/i.test(coaching)) {
+        coaching = "EAPCET";
+    }
+    return { group, coaching };
+}
+
+function matchCampus(studentCampus, filterCampus) {
+    if (!filterCampus || filterCampus === "All Campuses") return true;
+    if (!studentCampus) return false;
+    
+    const sc = String(studentCampus).toLowerCase().trim();
+    const fc = String(filterCampus).toLowerCase().trim();
+
+    if (sc === fc) return true;
+
+    // Day Scholar / Sri Vaibhav
+    if ((fc.includes("day") || fc.includes("vaibhav")) && (sc.includes("day") || sc.includes("vaibhav"))) return true;
+    
+    // Girls Campus / Sri Vaarahi
+    if ((fc.includes("girl") || fc.includes("vaarahi")) && (sc.includes("girl") || sc.includes("vaarahi"))) return true;
+    
+    // Boys Campus / Sri Virinchi
+    if ((fc.includes("boy") || fc.includes("virinchi")) && (sc.includes("boy") || sc.includes("virinchi"))) return true;
+
+    return false;
+}
+
+function matchYear(studentYear, filterYear) {
+    if (!filterYear || filterYear === "All Years") return true;
+    if (!studentYear) return false;
+    
+    const sy = String(studentYear).toLowerCase().trim();
+    const fy = String(filterYear).toLowerCase().trim();
+    
+    if (sy === fy) return true;
+
+    // 2nd Year matcher (matches 2, 2nd, 2nd year, second, ii)
+    if (fy.includes("2") || fy.includes("second") || fy.includes("ii")) {
+        return sy.includes("2") || sy.includes("second") || sy.includes("ii");
+    }
+
+    // 1st Year matcher (matches 1, 1st, 1st year, first, i)
+    if (fy.includes("1") || fy.includes("first") || fy.includes("i")) {
+        return sy.includes("1") || sy.includes("first") || (sy.includes("i") && !sy.includes("ii"));
+    }
+
+    return false;
+}
+
+function matchGroup(courseOrGroup, filterGroup) {
+    if (!filterGroup || filterGroup === "All Groups") return true;
+    if (!courseOrGroup) return false;
+    const cg = String(courseOrGroup).toUpperCase().trim();
+    const fg = String(filterGroup).toUpperCase().trim();
+    return cg.includes(fg);
+}
+
+function matchExam(courseOrExam, filterExam) {
+    if (!filterExam || filterExam === "All Exams") return true;
+    if (!courseOrExam) return false;
+    const ce = String(courseOrExam).toUpperCase().trim();
+    const fe = String(filterExam).toUpperCase().trim();
+
+    if (fe.includes("JEE ADV") && ce.includes("ADV")) return true;
+    if (fe.includes("JEE MAIN") && ce.includes("MAIN")) return true;
+    if ((fe.includes("EAPCET") || fe.includes("EAMCET") || fe.includes("EAPSET")) && (ce.includes("EAPCET") || ce.includes("EAMCET") || ce.includes("EAPSET"))) return true;
+    if (fe.includes("NEET") && ce.includes("NEET")) return true;
+
+    return ce.includes(fe);
+}
+
+function getMyStudents() {
+    if (currentAdminCampus === "All Campuses") return allStudents;
+    return allStudents.filter(s => matchCampus(s.campus, currentAdminCampus));
+}
+
+function showPage(id, button) {
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    document.querySelectorAll(".sidebar button").forEach(b => b.classList.remove("active"));
+    if (button) button.classList.add("active");
+    const titles = { dashboard: "Admin Dashboard", notices: "Notice Board", students: "Student Management", fees: "Fee Management", targets: "Monthly Collection Target", attendance: "Attendance", results: "Examination Results", achievements: "Achievements", gallery: "Gallery Management" };
+    if (id === "gallery" && typeof loadAdminGallery === "function") loadAdminGallery();
+    document.getElementById("pageTitle").textContent = titles[id];
+    renderAll();
+}
+
+// --- NOTICE BOARD LOGIC ---
+function toggleForwardBox(id) {
+    const box = document.getElementById(`forward-box-${id}`);
+    if (!box) return;
+    box.style.display = (box.style.display === "flex") ? "none" : "flex";
+}
+
+async function sendDirective(id) {
+    let directive = (globalNotices || []).find(n => String(n.id) === String(id) || String(n._id) === String(id));
+    if (!directive) {
+        directive = (adminNotices || []).find(n => String(n.id) === String(id) || String(n._id) === String(id));
+    }
+    if (!directive) {
+        alert("Directive not found.");
+        return;
+    }
+    
+    const targetSelect = document.getElementById(`forwardTarget-${id}`);
+    let target = targetSelect ? targetSelect.value : "All Students";
+
+    let newNotice = {
+        title: directive.title,
+        desc: directive.desc || directive.content || '',
+        content: directive.content || directive.desc || '',
+        target: target,
+        priority: directive.priority || 'Normal',
+        sender: directive.sender || "Administrator",
+        type: 'admin',
+        campus: currentAdminCampus || 'All Campuses',
+        date: new Date().toLocaleDateString()
+    };
+    
+    if (window.SchoolAPI) {
+        try {
+            const res = await window.SchoolAPI.postNotice(newNotice);
+            if (res && res.notice) newNotice = res.notice;
+        } catch (err) {
+            console.error("Notice forward error:", err);
+            alert("❌ Failed to forward directive: " + err.message);
+            return;
+        }
+    }
+    
+    adminNotices.unshift(newNotice);
+    persist();
+    toggleForwardBox(id);
+    renderNotices();
+    alert(`✅ Notice successfully sent to: ${target}`);
+}
+
+async function postAdminNotice() {
+    let title = document.getElementById("adminNoticeTitle").value.trim();
+    let desc = document.getElementById("adminNoticeDesc").value.trim();
+    let target = document.getElementById("adminNoticeTarget").value;
+    let priority = document.getElementById("adminNoticePriority").value;
+
+    if(!title || !desc) { alert("Please fill in both title and message."); return; }
+
+    let newNotice = {
+        title: title,
+        desc: desc,
+        content: desc,
+        target: target,
+        priority: priority,
+        sender: "Campus Admin",
+        type: 'admin',
+        campus: currentAdminCampus,
+        date: new Date().toLocaleDateString()
+    };
+    
+    if (window.SchoolAPI) {
+        try {
+            const res = await window.SchoolAPI.postNotice(newNotice);
+            if (res && res.notice) newNotice = res.notice;
+        } catch (err) {
+            console.error("Notice post error:", err);
+        }
+    }
+    
+    adminNotices.unshift(newNotice);
+    persist(); renderNotices();
+    document.getElementById("adminNoticeTitle").value = "";
+    document.getElementById("adminNoticeDesc").value = "";
+    alert("✅ Notice published to students successfully!");
+}
+
+function renderNotices() {
+    let directivesContainer = document.getElementById("directivesList");
+    let directives = globalNotices.filter(n => n.target === "Campus Admins");
+    
+    if(directives.length === 0) {
+        directivesContainer.innerHTML = "<p style='color:#888;'>No directives from Administrator.</p>";
+    } else {
+        directivesContainer.innerHTML = directives.map(n => {
+            const safeId = String(n.id || n._id || '');
+            return `
+            <div class="notice-card directive">
+                <h4 style="color:#991b1b;">🚨 ${n.title}</h4>
+                <p>${n.desc || n.content || ''}</p>
+                <div class="notice-meta" style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                    <div>
+                        <span><i class="fa-solid fa-user-tie"></i> ${n.sender || 'Administrator'}</span>
+                        <span style="margin-left:15px;"><i class="fa-solid fa-calendar"></i> ${n.date || 'Recent'}</span>
+                    </div>
+                    <button class="gold" style="padding: 8px 15px; font-size: 13px; display:flex; align-items:center; gap:5px;" onclick="toggleForwardBox('${safeId}')">
+                        <i class="fa-solid fa-share"></i> Forward to Students
+                    </button>
+                </div>
+                <div id="forward-box-${safeId}" class="forward-box">
+                    <label>Send this notice to:</label>
+                    <select id="forwardTarget-${safeId}">
+                        <option value="All Students">All Students</option>
+                        <option value="MPC Students">Only MPC Students</option>
+                        <option value="BiPC Students">Only BiPC Students</option>
+                        <option value="1st Year">Only 1st Year Students</option>
+                        <option value="2nd Year">Only 2nd Year Students</option>
+                    </select>
+                    <div class="btn-group">
+                        <button class="green" onclick="sendDirective('${safeId}')"><i class="fa-solid fa-paper-plane"></i> Send Now</button>
+                        <button class="light" onclick="toggleForwardBox('${safeId}')">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join("");
+    }
+
+    let container = document.getElementById("adminNoticeList");
+    if(adminNotices.length === 0) {
+        container.innerHTML = "<p style='color:#888;'>No notices published to students yet.</p>";
+        return;
+    }
+
+    container.innerHTML = adminNotices.map(n => {
+        const safeId = String(n.id || n._id || '');
+        const safeTitle = (n.title || '').replace(/'/g, "\\'");
+        return `
+        <div class="notice-card" style="position: relative; padding-right: 48px; ${n.priority === 'Important' ? 'border-left-color: #dc4b4b;' : ''}">
+            <!-- Cross on right upper part for Campus Admin's own notices -->
+            <button onclick="deleteAdminNotice('${safeId}', '${safeTitle}')" 
+                    title="Delete notice"
+                    style="position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 22px; font-weight: bold; color: #94a3b8; cursor: pointer; padding: 2px 8px; line-height: 1; border-radius: 4px; transition: all 0.2s;"
+                    onmouseover="this.style.color='#dc2626'; this.style.background='#fee2e2';"
+                    onmouseout="this.style.color='#94a3b8'; this.style.background='none';">
+                &times;
+            </button>
+
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">
+                <h4 style="margin: 0; color: #123f60; font-size: 16px;">
+                    ${n.priority === 'Important' ? '🚨 ' : ''}${n.title}
+                </h4>
+            </div>
+            <p style="margin: 8px 0; color: #555; line-height: 1.5;">${n.desc || n.content || ''}</p>
+            <div class="notice-meta" style="display: flex; gap: 15px; align-items: center; margin-top: 10px; font-size: 12px; color: #888;">
+                <span><i class="fa-solid fa-user-tie"></i> ${n.sender || 'Campus Admin'}</span>
+                <span><i class="fa-solid fa-calendar"></i> ${n.date || 'Recent'}</span>
+                <span class="notice-target">To: ${n.target || 'All Students'}</span>
+            </div>
+        </div>
+        `;
+    }).join("");
+}
+
+async function deleteAdminNotice(id, title) {
+    if (!confirm("⚠️ Are you sure you want to delete this notice? This will remove it from students' notice boards.")) return;
+    try {
+        const deleteTarget = id || title;
+        if (deleteTarget) {
+            if (window.SchoolAPI && typeof window.SchoolAPI.deleteNotice === 'function') {
+                await window.SchoolAPI.deleteNotice(deleteTarget);
+            } else {
+                let token = localStorage.getItem('token');
+                let res = await fetch('/api/notices/' + encodeURIComponent(deleteTarget), {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+                });
+                if (res.status === 401 && window.SchoolAPI && typeof window.SchoolAPI.ensureAuth === 'function') {
+                    await window.SchoolAPI.ensureAuth('admin');
+                    token = localStorage.getItem('token');
+                    await fetch('/api/notices/' + encodeURIComponent(deleteTarget), {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+                    });
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("Server notice delete warning:", err);
+    }
+    adminNotices = (adminNotices || []).filter(n => {
+        const matchId = id && String(n.id || n._id || '') === String(id);
+        const matchTitle = title && String(n.title || '').trim().toLowerCase() === String(title).trim().toLowerCase();
+        return !(matchId || matchTitle);
+    });
+    globalNotices = (globalNotices || []).filter(n => {
+        const matchId = id && String(n.id || n._id || '') === String(id);
+        const matchTitle = title && String(n.title || '').trim().toLowerCase() === String(title).trim().toLowerCase();
+        return !(matchId || matchTitle);
+    });
+    persist();
+    renderNotices();
+    alert("✅ Notice deleted successfully.");
+}
+
+// --- REST OF ADMIN FUNCTIONS ---
+function clearForm() {
+    ["editId", "sid", "sname", "sdob", "sfather", "smother", "sphone", "sschool", "att"].forEach(id => document.getElementById(id).value = "");
+    
+    if(currentAdminCampus === "Girls Campus") document.getElementById("sgenderLocked").value = "Female";
+    if(currentAdminCampus === "Boys Campus") document.getElementById("sgenderLocked").value = "Male";
+}
+
+function parseExcelDob(rawDob) {
+    if (!rawDob) return "";
+
+    // 1. If already a Date object (from XLSX cellDates: true)
+    if (rawDob instanceof Date && !isNaN(rawDob.getTime())) {
+        const y = rawDob.getFullYear();
+        const m = String(rawDob.getMonth() + 1).padStart(2, '0');
+        const d = String(rawDob.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    // 2. If Excel serial number (e.g. 39583)
+    if (typeof rawDob === 'number') {
+        const dateObj = new Date(Math.round((rawDob - 25569 + 0.1) * 86400 * 1000));
+        if (!isNaN(dateObj.getTime())) {
+            const y = dateObj.getUTCFullYear();
+            const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getUTCDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+    }
+
+    const str = String(rawDob).trim();
+    if (!str) return "";
+
+    // 3. Already YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+        return str;
+    }
+
+    // 4. DD/MM/YYYY or DD-MM-YYYY (Standard format in India)
+    const dmyMatch = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if (dmyMatch) {
+        const d = String(dmyMatch[1]).padStart(2, '0');
+        const m = String(dmyMatch[2]).padStart(2, '0');
+        const y = dmyMatch[3];
+        return `${y}-${m}-${d}`;
+    }
+
+    // 5. YYYY/MM/DD
+    const ymdMatch = str.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+    if (ymdMatch) {
+        const y = ymdMatch[1];
+        const m = String(ymdMatch[2]).padStart(2, '0');
+        const d = String(ymdMatch[3]).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    // 6. Generic JS date parse
+    const parsed = new Date(str);
+    if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, '0');
+        const d = String(parsed.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    return str;
+}
+
+function downloadTemplate() {
+    const wb = XLSX.utils.book_new();
+    const defaultGender = (currentAdminCampus.includes("Girls") || currentAdminCampus.includes("girl")) ? "Female" : "Male";
+    const data = [
+        ["Student ID", "Name", "DOB", "Gender", "Father", "Mother", "Phone", "School", "Course", "Year", "Campus", "Transport", "Attendance", "Password"],
+        ["STU111", "Sample Student", "2008-05-15", defaultGender, "Father Name", "Mother Name", "9876543210", "Previous School", "MPC - JEE Advanced", "1st Year", currentAdminCampus, "true", 92, "pass123"]
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, "Students");
+    XLSX.writeFile(wb, `${currentAdminCampus.replace(/[\s\-\–]+/g, '_')}_Student_Template.xlsx`);
+}
+
+async function importExcel(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if(!confirm("📥 Add students from this file into the system? Existing students will NOT be deleted, and login accounts will be created automatically.")) {
+        document.getElementById('excelFileInput').value = ''; return;
+    }
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, raw: false});
+            
+            let newStudents = [];
+            for (let i = 1; i < jsonData.length; i++) {
+                let row = jsonData[i];
+                if (!row || row.length < 2) continue;
+                let id = String(row[0] || "").trim().toUpperCase();
+                let name = String(row[1] || "").trim();
+                if (!id || !name || id === "STUDENT ID" || id === "ID") continue;
+                
+                // Robust date of birth parsing into standard YYYY-MM-DD
+                let formattedDob = parseExcelDob(row[2]);
+
+                // STRICT: Always assign current admin's campus
+                let assignedCampus = currentAdminCampus;
+                    
+                let assignedGender = row[3] ? String(row[3]).trim() : "Male";
+                if (currentAdminCampus.includes("Girls") || currentAdminCampus.includes("girl")) assignedGender = "Female";
+                if (currentAdminCampus.includes("Boys") || currentAdminCampus.includes("boy")) assignedGender = "Male";
+
+                let studentPass = row[13] ? String(row[13]).trim() : "pass123";
+
+                if (id && name && !newStudents.some(s => s.id === id)) {
+                    newStudents.push({
+                        id,
+                        name,
+                        dob: formattedDob,
+                        gender: assignedGender,
+                        father: row[4] ? String(row[4]).trim() : "",
+                        mother: row[5] ? String(row[5]).trim() : "",
+                        phone: row[6] ? String(row[6]).trim() : "",
+                        school: row[7] ? String(row[7]).trim() : "",
+                        course: row[8] ? String(row[8]).trim() : "BiPC - NEET",
+                        year: row[9] ? String(row[9]).trim() : "1st Year",
+                        campus: assignedCampus,
+                        transport: row[11] ? String(row[11]).trim().toLowerCase() === "true" : false,
+                        att: row[12] ? Number(row[12]) || 90 : 90,
+                        pass: studentPass,
+                        results: []
+                    });
+                }
+            }
+
+            if(newStudents.length > 0) {
+                // 1. Upload to Cloud Database & provision login accounts
+                if (window.SchoolAPI) {
+                    try {
+                        await window.SchoolAPI.request('/api/students/bulk', {
+                            method: 'POST',
+                            body: JSON.stringify({ students: newStudents })
+                        });
+                    } catch (apiErr) {
+                        console.error("Bulk upload API error:", apiErr);
+                    }
+                }
+
+                // 2. NON-DESTRUCTIVE MERGE: Update existing or append new students without wiping any old students
+                newStudents.forEach(stu => {
+                    const idx = allStudents.findIndex(s => s.id === stu.id);
+                    if (idx > -1) {
+                        allStudents[idx] = { ...allStudents[idx], ...stu };
+                    } else {
+                        allStudents.push(stu);
+                    }
+                });
+
+                // 3. Re-sync from server to ensure complete consistency with cloud
+                if (window.SchoolAPI) {
+                    try {
+                        const cloudStudents = await window.SchoolAPI.getStudents();
+                        if (cloudStudents && cloudStudents.length > 0) {
+                            allStudents = cloudStudents;
+                        }
+                    } catch (e) {}
+                }
+
+                persist();
+                renderAll();
+                alert(`✅ Success! Added/Updated ${newStudents.length} students without removing existing students!\n\nAll students can now log in at login.html using their Student ID and password (default: pass123).`);
+            } else {
+                alert("❌ No valid student records found in the file.");
+            }
+        } catch (err) {
+            console.error("Student Excel import error:", err);
+            alert("❌ Failed to process student import file: " + err.message);
+        } finally {
+            document.getElementById('excelFileInput').value = '';
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function downloadAttendanceTemplate() {
+    const wb = XLSX.utils.book_new();
+    let myStudents = getMyStudents();
+    let rows = [["Student ID", "Student Name", "Status / Attendance %"]];
+    if (myStudents && myStudents.length > 0) {
+        myStudents.forEach(s => {
+            rows.push([s.id, s.name, s.att ? s.att + "%" : "Present"]);
+        });
+    } else {
+        rows.push(["STUDENT", "Default Student", "Present"]);
+        rows.push(["STU101", "Sample Student", "Present"]);
+    }
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance_Register");
+    XLSX.writeFile(wb, "Attendance_Template.xlsx");
+}
+
+async function importAttendanceExcel(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+            if (!rows || rows.length === 0) {
+                alert("❌ The uploaded file is empty.");
+                return;
+            }
+
+            let updatedCount = 0;
+            let recordsToSync = [];
+            const myStudents = getMyStudents();
+            const myStudentMap = new Map();
+            myStudents.forEach(s => myStudentMap.set(String(s.id).trim().toUpperCase(), s));
+            allStudents.forEach(s => {
+                if (!myStudentMap.has(String(s.id).trim().toUpperCase())) {
+                    myStudentMap.set(String(s.id).trim().toUpperCase(), s);
+                }
+            });
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0) continue;
+
+                let matchedStudent = null;
+                let statusVal = null;
+
+                // Scan all cells in the row to find a matching Student ID
+                for (let j = 0; j < row.length; j++) {
+                    const cellStr = String(row[j] || "").trim().toUpperCase();
+                    if (!cellStr) continue;
+
+                    // Skip header labels
+                    if (["STUDENT ID", "ID", "STUDENT", "ROLL NO", "S.NO", "NAME", "STATUS"].includes(cellStr)) {
+                        continue;
+                    }
+
+                    if (myStudentMap.has(cellStr)) {
+                        matchedStudent = myStudentMap.get(cellStr);
+                        // Find status in subsequent columns
+                        for (let k = j + 1; k < row.length; k++) {
+                            const val = String(row[k] || "").trim();
+                            if (val && val !== matchedStudent.name) {
+                                statusVal = val;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                // If not found in scan, try first column
+                if (!matchedStudent && row[0]) {
+                    const firstCell = String(row[0]).trim().toUpperCase();
+                    if (!["STUDENT ID", "ID", "STUDENT", "ROLL NO", "S.NO"].includes(firstCell)) {
+                        matchedStudent = allStudents.find(s => s.id === firstCell);
+                        statusVal = row[1] !== undefined ? String(row[1]).trim() : (row[2] !== undefined ? String(row[2]).trim() : "");
+                    }
+                }
+
+                if (matchedStudent) {
+                    const sIndex = allStudents.findIndex(s => s.id === matchedStudent.id);
+                    if (sIndex > -1) {
+                        let newAtt = Number(allStudents[sIndex].att) || 90;
+                        let statusText = "Present";
+
+                        if (statusVal) {
+                            const cleanVal = String(statusVal).toLowerCase().replace('%', '').trim();
+                            const numVal = parseFloat(cleanVal);
+                            if (!isNaN(numVal) && numVal >= 0 && numVal <= 100) {
+                                newAtt = Math.round(numVal);
+                                statusText = newAtt >= 75 ? "Present" : "Absent";
+                            } else if (cleanVal.includes("present") || cleanVal === "p" || cleanVal === "1") {
+                                statusText = "Present";
+                                newAtt = Math.min(100, (Number(allStudents[sIndex].att) || 90) + 1);
+                            } else if (cleanVal.includes("absent") || cleanVal === "a" || cleanVal === "0") {
+                                statusText = "Absent";
+                                newAtt = Math.max(0, (Number(allStudents[sIndex].att) || 90) - 2);
+                            }
+                        }
+
+                        allStudents[sIndex].att = newAtt;
+                        recordsToSync.push({
+                            studentId: matchedStudent.id,
+                            status: statusText,
+                            att: newAtt,
+                            campus: matchedStudent.campus
+                        });
+                        updatedCount++;
+                    }
+                }
+            }
+
+            if (updatedCount > 0) {
+                if (window.SchoolAPI) {
+                    try {
+                        await window.SchoolAPI.markAttendance({
+                            records: recordsToSync,
+                            date: new Date().toISOString().split('T')[0]
+                        });
+                    } catch (apiErr) {
+                        console.error("Attendance bulk sync error:", apiErr);
+                    }
+                }
+                persist();
+                renderAll();
+                alert(`✅ Success! Updated attendance for ${updatedCount} students in both browser and cloud database!`);
+            } else {
+                alert("❌ No matching student records found in the uploaded file.\n\nPlease ensure your file contains the Student ID (e.g., download the template above).");
+            }
+        } catch (err) {
+            console.error("Excel parse error:", err);
+            alert("❌ Failed to parse attendance file: " + err.message);
+        } finally {
+            document.getElementById('attendanceFileInput').value = '';
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+async function saveStudent() {
+    let id = document.getElementById("sid").value.trim().toUpperCase();
+    let name = document.getElementById("sname").value.trim();
+    if (!id || !name) { alert("Please enter ID and Name."); return; }
+    
+    let edit = document.getElementById("editId").value;
+    
+    if (allStudents.some(s => s.id === id && s.id !== edit)) { alert("Student ID already exists."); return; }
+    
+    let courseVal = document.getElementById("course").value;
+    
+    let campusVal = currentAdminCampus === "All Campuses" 
+        ? document.getElementById("campus").value 
+        : currentAdminCampus;
+
+    let genderVal = "";
+    if (currentAdminCampus === "Girls Campus") {
+        genderVal = "Female";
+    } else if (currentAdminCampus === "Boys Campus") {
+        genderVal = "Male";
+    } else {
+        genderVal = document.getElementById("sgender").value;
+    }
+
+    let transportVal = document.getElementById("transport").value === "true";
+
+    let rawInputDob = (document.getElementById("sdob").value || '').trim();
+    let normalizedDob = parseExcelDob(rawInputDob) || rawInputDob;
+
+    let student = {
+        id, name, dob: normalizedDob, gender: genderVal,
+        father: document.getElementById("sfather").value, mother: document.getElementById("smother").value,
+        phone: document.getElementById("sphone").value, school: document.getElementById("sschool").value,
+        course: courseVal, year: document.getElementById("year").value,
+        campus: campusVal, transport: transportVal,
+        att: document.getElementById("att").value, pass: "pass123", results: []
+    };
+    
+    if (edit) {
+        let index = allStudents.findIndex(s => s.id === edit);
+        student.results = allStudents[index].results || []; 
+        allStudents[index] = student;
+        if (window.SchoolAPI) {
+            try {
+                await window.SchoolAPI.updateStudent(edit, student);
+            } catch (err) {
+                console.error("API Sync Error:", err);
+                alert("Warning: Could not update on cloud database: " + err.message);
+            }
+        }
+    } else {
+        allStudents.push(student);
+        let defaultTuition = COURSE_FEES[courseVal] || 100000;
+        let defaultHostel = campusVal.includes("Campus") ? HOSTEL_FEE : 0;
+        let defaultTransport = transportVal ? TRANSPORT_FEE : 0;
+        let initFee = { total: defaultTuition + defaultHostel + defaultTransport, paid: 0 };
+        fees[id] = initFee;
+
+        if (window.SchoolAPI) {
+            try {
+                await window.SchoolAPI.addStudent(student);
+                await window.SchoolAPI.recordFee({ studentId: id, total: initFee.total, paid: 0 }).catch(() => {});
+            } catch (err) {
+                console.error("API Sync Error:", err);
+                alert("Warning: Could not save to cloud database: " + err.message);
+            }
+        }
+    }
+    
+    persist(); clearForm(); renderAll(); alert("Student saved successfully! Password: pass123");
+}
+
+function editStudent(id) {
+    let s = allStudents.find(x => x.id === id);
+    if (!s) return;
+    
+    if(currentAdminCampus !== "All Campuses" && !matchCampus(s.campus, currentAdminCampus)) {
+        alert("Access Denied: This student belongs to another campus.");
+        return;
+    }
+
+    document.getElementById("editId").value = s.id; document.getElementById("sid").value = s.id;
+    document.getElementById("sname").value = s.name; document.getElementById("sdob").value = parseExcelDob(s.dob) || "";
+    
+    if (currentAdminCampus === "All Campuses") {
+        document.getElementById("sgender").value = s.gender || "Male"; 
+    } else {
+        document.getElementById("sgenderLocked").value = s.gender; 
+    }
+
+    document.getElementById("sfather").value = s.father || "";
+    document.getElementById("smother").value = s.mother || ""; document.getElementById("sphone").value = s.phone || "";
+    document.getElementById("sschool").value = s.school || ""; document.getElementById("course").value = s.course;
+    document.getElementById("year").value = s.year; document.getElementById("campus").value = s.campus;
+    document.getElementById("transport").value = s.transport.toString(); document.getElementById("att").value = s.att;
+    showPage("students"); window.scrollTo(0,0);
+}
+
+function deleteStudent(id) {
+    alert("Access Denied: Only Administrators have permission to delete student records.");
+}
+
+function renderStudents() {
+    let q = (document.getElementById("search").value || "").toLowerCase();
+    let myStudents = getMyStudents();
+    document.getElementById("studentTable").innerHTML = myStudents.filter(s => (s.id + " " + s.name).toLowerCase().includes(q)).map(s => `<tr><td>${s.id}</td><td><strong style="font-size: 15px; color: #164e70;">${s.name}</strong></td><td>${(s.course||"").replace(/\bAP\s+EAPCET\b/gi,"EAPCET").replace(/\beapset\b/gi,"EAPCET")}</td><td>${s.year}</td><td>${s.campus}</td><td><strong>${s.att}%</strong></td>
+    <td><button class="light" onclick="editStudent('${s.id}')">Edit</button></td></tr>`).join("");
+}
+
+function fillDropdowns() {
+    let myStudents = getMyStudents();
+
+    // Searchable Student ID input for fee updates
+    const feeOptions = document.getElementById("feeStudentOptions");
+    if (feeOptions) {
+        feeOptions.innerHTML = myStudents.map(s =>
+            `<option value="${String(s.id).replace(/&/g, "&amp;").replace(/"/g, "&quot;")}" label="${String(s.name || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"></option>`
+        ).join("");
+    }
+
+    // Keep the existing student dropdowns for Attendance and Results
+    let options = '<option value="">Select Student</option>' + myStudents.map(s => `<option value="${s.id}">${s.name} (${s.id})</option>`).join("");
+    ["attendanceStudent", "resultStudent"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = options;
+    });
+}
+
+function autofillFee() {
+    let id = document.getElementById("feeStudent").value.trim();
+    let student = getMyStudents().find(s => String(s.id).toLowerCase() === id.toLowerCase());
+    if (!student) {
+        document.getElementById("feeTotal").value = "";
+        document.getElementById("feePaid").value = "";
+        return;
+    }
+    id = student.id;
+    let f = fees[id] || { total: 0, paid: 0 };
+    if (f && f.total > 0) {
+        document.getElementById("feeTotal").value = f.total;
+        document.getElementById("feePaid").value = f.paid !== undefined ? f.paid : 0;
+    } else {
+        let defaultTuition = COURSE_FEES[student.course] || 100000;
+        let defaultHostel = student.campus.includes("Campus") ? HOSTEL_FEE : 0;
+        let defaultTransport = student.transport ? TRANSPORT_FEE : 0;
+        document.getElementById("feeTotal").value = defaultTuition + defaultHostel + defaultTransport;
+        document.getElementById("feePaid").value = 0; 
+    }
+}
+
+async function saveFee() {
+    let id = document.getElementById("feeStudent").value;
+    let total = Number(document.getElementById("feeTotal").value);
+    let paid = Number(document.getElementById("feePaid").value);
+    
+    let sIndex = allStudents.findIndex(s => s.id === id);
+    if(sIndex === -1) return;
+    
+    if(currentAdminCampus !== "All Campuses" && !matchCampus(allStudents[sIndex].campus, currentAdminCampus)) {
+        alert("Access Denied: You cannot update fees for a student of another campus.");
+        return;
+    }
+
+    if (!id || total <= 0 || paid < 0 || paid > total) { alert("Please enter valid fee details."); return; }
+    fees[id] = { total, paid };
+    if (window.SchoolAPI) {
+        try {
+            await window.SchoolAPI.recordFee({ studentId: id, total, paid });
+        } catch (err) {
+            console.error("Fee API error:", err);
+            alert("Warning: Could not save fee to cloud: " + err.message);
+        }
+    }
+    persist();
+    feeResultsMode = "updated";
+    lastUpdatedFeeStudentId = id;
+    renderAll();
+    alert("Fee details updated. The updated student is shown below.");
+}
+
+// Fee results visibility state:
+// idle = hide all rows, filters/search = show matching students, updated = show only last updated student.
+let feeResultsMode = "idle";
+let lastUpdatedFeeStudentId = null;
+
+function showGlobalFeeResults() {
+    feeResultsMode = "filters";
+    lastUpdatedFeeStudentId = null;
+    renderFilteredFees();
+}
+
+function searchFeeResults() {
+    feeResultsMode = "search";
+    lastUpdatedFeeStudentId = null;
+    renderFilteredFees();
+}
+
+function clearFeeResults() {
+    const input = document.getElementById("feeSearchInput");
+    if (input) input.value = "";
+    feeResultsMode = "idle";
+    lastUpdatedFeeStudentId = null;
+    renderFilteredFees();
+}
+
+// ==================== NEW GLOBAL FEE FILTER LOGIC (DROPDOWNS) ====================
+function renderFilteredFees() {
+    let myStudents = getMyStudents();
+    
+    // Get values from dropdowns
+    let fCampus = document.getElementById("feeFilterCampus").value;
+    let fYear = document.getElementById("feeFilterYear").value;
+    let fGroup = document.getElementById("feeFilterGroup").value;
+    let fExam = document.getElementById("feeFilterExam").value;
+    let termNum = parseInt(document.getElementById("feeFilterTerm").value) || 1;
+    let fStatus = document.getElementById("feeFilterStatus").value;
+
+    // Apply Filters
+    let filtered = myStudents.filter(s => {
+        if (!matchCampus(s.campus, fCampus)) return false;
+        if (!matchYear(s.year, fYear)) return false;
+        if (!matchGroup(s.course, fGroup)) return false;
+        if (!matchExam(s.course, fExam)) return false;
+
+        // Fee Status Logic
+        let f = fees[s.id] || { total: 0, paid: 0 };
+        let termFee = f.total / 3;
+        let paidForThisTerm = Math.min(Math.max(0, f.paid - (termNum - 1) * termFee), termFee);
+        
+        let status = "Not Paid";
+        if (paidForThisTerm >= termFee && termFee > 0) status = "Full Paid";
+        else if (paidForThisTerm > 0) status = "Partially Paid";
+
+        if (fStatus !== "All" && status !== fStatus) return false;
+
+        return true;
+    });
+
+    // Apply Search
+    let searchQ = (document.getElementById("feeSearchInput").value || "").toLowerCase();
+    if(searchQ) {
+        filtered = filtered.filter(s => (s.id + " " + s.name).toLowerCase().includes(searchQ));
+    }
+
+    // Control when the fee results are visible.
+    if (feeResultsMode === "idle") {
+        filtered = [];
+    } else if (feeResultsMode === "updated" && lastUpdatedFeeStudentId) {
+        filtered = filtered.filter(s => String(s.id) === String(lastUpdatedFeeStudentId));
+    }
+
+    // Update Title
+    let statusText = fStatus === "All" ? "All" : fStatus;
+    document.getElementById("feeTableTitle").textContent = `Total ${statusText} Students (Term ${termNum}): ${filtered.length}`;
+    document.getElementById("feeTableSubtitle").textContent = `${statusText} Student List (Term ${termNum})`;
+
+    // Render Table
+    document.getElementById("feeTable").innerHTML = filtered.map(s => {
+        let f = fees[s.id] || { total: 0, paid: 0 };
+        let termFee = f.total / 3;
+        let paidForThisTerm = Math.min(Math.max(0, f.paid - (termNum - 1) * termFee), termFee);
+        
+        let badgeClass = "green";
+        let statusLabel = "Full Paid";
+        if (paidForThisTerm <= 0) { badgeClass = "pending"; statusLabel = "Not Paid"; }
+        else if (paidForThisTerm < termFee) { badgeClass = "warning"; statusLabel = "Partial"; }
+
+        let dueAmount = Math.max(0, f.total - f.paid);
+
+        return `<tr style="cursor:pointer;" onclick="openStudentTermFeeModal('${s.id}')" title="Click to view full term-wise fee breakdown">
+            <td><strong>${s.id}</strong></td>
+            <td><strong style="color:#0d4e78;">${s.name}</strong></td>
+            <td>${s.course}</td>
+            <td>${s.campus}</td>
+            <td>${money(f.total)}</td>
+            <td style="color:#169b6b; font-weight:bold;">${money(f.paid)}</td>
+            <td style="color:#dc4b4b; font-weight:bold;">${money(dueAmount)}</td>
+            <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
+            <td style="text-align:center;">
+                <button type="button" class="primary" style="padding:5px 12px;font-size:12px;border-radius:6px;" onclick="event.stopPropagation(); openStudentTermFeeModal('${s.id}')">📊 Fee Details</button>
+            </td>
+        </tr>`;
+    }).join("") || `<tr><td colspan="9" style="text-align:center; padding:20px; color:#888;">No students found for the selected filters.</td></tr>`;
+}
+
+function resetFeeFilters() {
+    document.getElementById("feeFilterCampus").value = "All Campuses";
+    document.getElementById("feeFilterYear").value = "All Years";
+    document.getElementById("feeFilterGroup").value = "All Groups";
+    document.getElementById("feeFilterExam").value = "All Exams";
+    document.getElementById("feeFilterTerm").value = "1";
+    document.getElementById("feeFilterStatus").value = "All";
+    document.getElementById("feeSearchInput").value = "";
+    feeResultsMode = "idle";
+    lastUpdatedFeeStudentId = null;
+    renderFilteredFees();
+}
+// ==================== END FEE LOGIC ====================
+
+
+// --- UPGRADED MONTHLY COLLECTION TARGET LOGIC ---
+function updateCoachingDropdown() {
+    let groupSelect = document.getElementById("tfGroup");
+    let coachingSelect = document.getElementById("tfCoaching");
+    let selectedGroup = groupSelect.value;
+
+    coachingSelect.innerHTML = '<option value="All Programs">All Programs</option>';
+
+    if (selectedGroup === "MPC") {
+        coachingSelect.innerHTML += `
+            <option value="EAPCET">EAPCET</option>
+            <option value="JEE Mains">JEE Mains</option>
+            <option value="JEE Advanced">JEE Advanced</option>
+        `;
+    } else if (selectedGroup === "BiPC") {
+        coachingSelect.innerHTML += `
+            <option value="NEET">NEET</option>
+            <option value="EAPCET">EAPCET</option>
+        `;
+    }
+}
+
+function calculateTargets() {
+    let campusFilter = document.getElementById("tfCampus").value;
+    let groupFilter = document.getElementById("tfGroup").value;
+    let coachingFilter = document.getElementById("tfCoaching").value;
+    let termFilter = parseInt(document.getElementById("tfTerm").value);
+    let monthFilter = document.getElementById("tfMonth").value;
+
+    let termLabel = `Term ${termFilter}`;
+    if (document.getElementById("tgtMonthLabel")) {
+        document.getElementById("tgtMonthLabel").textContent = monthFilter ? monthFilter : termLabel;
+    }
+
+    let filteredStudents = allStudents.filter(s => {
+        if (!matchCampus(s.campus, campusFilter)) return false;
+        if (!matchGroup(s.course, groupFilter)) return false;
+        if (coachingFilter !== "All Programs" && !matchExam(s.course, coachingFilter)) return false;
+
+        return true;
+    });
+
+    let totalStudents = filteredStudents.length;
+    let expectedCollection = 0;
+    let collectedAmount = 0;
+    let fullyPaidCount = 0;
+    let partiallyPaidCount = 0;
+    let notPaidCount = 0;
+
+    filteredStudents.forEach(s => {
+        let f = fees[s.id] || { total: 0, paid: 0 };
+        let termFee = f.total / 3; 
+        expectedCollection += termFee;
+
+        let paidForThisTerm = Math.min(Math.max(0, f.paid - (termFilter - 1) * termFee), termFee);
+        
+        if (paidForThisTerm >= termFee && termFee > 0) {
+            fullyPaidCount++;
+            collectedAmount += termFee;
+        } else if (paidForThisTerm > 0) {
+            partiallyPaidCount++;
+            collectedAmount += paidForThisTerm;
+        } else {
+            notPaidCount++;
+        }
+    });
+
+    let pendingAmount = expectedCollection - collectedAmount;
+    let percentage = expectedCollection > 0 ? Math.round((collectedAmount / expectedCollection) * 100) : 0;
+
+    document.getElementById("tgtTotalStudents").textContent = totalStudents;
+    document.getElementById("tgtExpected").textContent = money(expectedCollection);
+    document.getElementById("tgtCollected").textContent = money(collectedAmount);
+    document.getElementById("tgtPending").textContent = money(pendingAmount);
+    
+    document.getElementById("tgtFullyPaid").textContent = fullyPaidCount;
+    document.getElementById("tgtPartiallyPaid").textContent = partiallyPaidCount;
+    document.getElementById("tgtNotPaid").textContent = notPaidCount;
+
+    document.getElementById("tgtPercentage").textContent = `${percentage}%`;
+    let bar = document.getElementById("tgtProgressBar");
+    bar.style.width = `${percentage}%`;
+    
+    if (percentage > 75) bar.style.backgroundColor = "#169b6b";
+    else if (percentage > 40) bar.style.backgroundColor = "#e9bd45";
+    else bar.style.backgroundColor = "#dc4b4b";
+
+    document.getElementById("tgtGoalLabel").textContent = money(expectedCollection);
+    document.getElementById("tgtRemainingLabel").textContent = money(pendingAmount);
+
+    generateCampusBreakdown();
+    generateGroupBreakdown();
+}
+
+function generateCampusBreakdown() {
+    let campuses = [
+        "Sri Vaibhav Campus – Day Scholar",
+        "Sri Vaarahi Bhavan – Girls Campus & Hostel",
+        "Sri Virinchi Bhavan – Boys Campus & Hostel"
+    ];
+    
+    let termFilter = parseInt(document.getElementById("tfTerm").value);
+    let html = "";
+
+    campuses.forEach(campus => {
+        let campusStudents = allStudents.filter(s => s.campus === campus);
+        let studentsCount = campusStudents.length;
+        let expected = 0;
+        let collected = 0;
+
+        campusStudents.forEach(s => {
+            let f = fees[s.id] || { total: 0, paid: 0 };
+            let termFee = f.total / 3;
+            expected += termFee;
+            
+            let paidForThisTerm = Math.min(Math.max(0, f.paid - (termFilter - 1) * termFee), termFee);
+            collected += paidForThisTerm;
+        });
+
+        let pending = expected - collected;
+
+        html += `
+            <tr>
+                <td>${campus}</td>
+                <td>${studentsCount}</td>
+                <td>${money(expected)}</td>
+                <td style="color: #169b6b; font-weight:bold;">${money(collected)}</td>
+                <td style="color: #dc4b4b; font-weight:bold;">${money(pending)}</td>
+            </tr>
+        `;
+    });
+
+    document.getElementById("campusBreakdownTable").innerHTML = html;
+}
+
+function generateGroupBreakdown() {
+    let groups = [
+        { name: "MPC", coaching: "EAPCET" },
+        { name: "MPC", coaching: "JEE Mains" },
+        { name: "MPC", coaching: "JEE Advanced" },
+        { name: "BiPC", coaching: "NEET" },
+        { name: "BiPC", coaching: "EAPCET" }
+    ];
+    
+    let termFilter = parseInt(document.getElementById("tfTerm").value);
+    let html = "";
+
+    groups.forEach(g => {
+        let matchStudents = allStudents.filter(s => {
+            let parsed = getGroupAndCoaching(s.course);
+            return parsed.group === g.name && parsed.coaching === g.coaching;
+        });
+
+        let count = matchStudents.length;
+        let expected = 0;
+        let collected = 0;
+
+        matchStudents.forEach(s => {
+            let f = fees[s.id] || { total: 0, paid: 0 };
+            let termFee = f.total / 3;
+            expected += termFee;
+            
+            let paidForThisTerm = Math.min(Math.max(0, f.paid - (termFilter - 1) * termFee), termFee);
+            collected += paidForThisTerm;
+        });
+
+        let pending = expected - collected;
+
+        if (count > 0) {
+            html += `
+                <tr>
+                    <td><strong>${g.name}</strong></td>
+                    <td>${g.coaching}</td>
+                    <td>${count}</td>
+                    <td>${money(expected)}</td>
+                    <td style="color: #169b6b; font-weight:bold;">${money(collected)}</td>
+                    <td style="color: #dc4b4b; font-weight:bold;">${money(pending)}</td>
+                </tr>
+            `;
+        }
+    });
+
+    if (html === "") {
+        html = "<tr><td colspan='6' style='text-align:center; color:#888;'>No student records found for these breakdowns.</td></tr>";
+    }
+
+    document.getElementById("groupBreakdownTable").innerHTML = html;
+}
+
+// --- END OF UPGRADED TARGET LOGIC ---
+
+async function saveAttendance() {
+    let id = document.getElementById("attendanceStudent").value;
+    let percent = Number(document.getElementById("attPercent").value);
+    if (!id || percent < 0 || percent > 100) { alert("Enter valid attendance percentage."); return; }
+    
+    let sIndex = allStudents.findIndex(s => s.id === id);
+    if(sIndex > -1) { 
+        if(currentAdminCampus !== "All Campuses" && !matchCampus(allStudents[sIndex].campus, currentAdminCampus)) {
+            alert("Access Denied: This student belongs to another campus.");
+            return;
+        }
+        allStudents[sIndex].att = percent; 
+        if (window.SchoolAPI) {
+            try {
+                await window.SchoolAPI.markAttendance({ studentId: id, att: percent });
+            } catch (err) {
+                console.error("Attendance API error:", err);
+            }
+        }
+        persist(); renderAll(); alert("Attendance saved!"); 
+    }
+}
+
+// ==================== NEW GLOBAL ATTENDANCE FILTER LOGIC (DROPDOWNS) ====================
+function renderFilteredAttendance() {
+    let myStudents = getMyStudents();
+
+    // Get values from dropdowns and input
+    let fCampus = document.getElementById("attFilterCampus").value;
+    let fYear = document.getElementById("attFilterYear").value;
+    let fGroup = document.getElementById("attFilterGroup").value;
+    let fExam = document.getElementById("attFilterExam").value;
+    let rangeStr = document.getElementById("attRangeInput").value.trim();
+
+    // Apply Dropdown Filters
+    let filtered = myStudents.filter(s => {
+        if (!matchCampus(s.campus, fCampus)) return false;
+        if (!matchYear(s.year, fYear)) return false;
+        if (!matchGroup(s.course, fGroup)) return false;
+        if (!matchExam(s.course, fExam)) return false;
+
+        return true;
+    });
+
+    // Apply Range Filter
+    if (rangeStr) {
+        let parts = rangeStr.split("-");
+        let min = parseInt(parts[0]);
+        let max = parseInt(parts[1]);
+        if (!isNaN(min)) {
+            filtered = filtered.filter(s => {
+                let val = Number(s.att) || 0;
+                if (!isNaN(max)) return val >= min && val <= max;
+                return val >= min;
+            });
+        }
+    }
+
+    // Apply Search
+    let searchQ = (document.getElementById("attSearchInput").value || "").toLowerCase();
+    if(searchQ) {
+        filtered = filtered.filter(s => (s.id + " " + s.name).toLowerCase().includes(searchQ));
+    }
+
+    // Update Title
+    document.getElementById("attTableTitle").textContent = `Total Students Found: ${filtered.length}`;
+
+    // Render Table
+    document.getElementById("attendanceTable").innerHTML = filtered.map(s => {
+        let isWarning = s.att < 90;
+        let color = isWarning ? '#dc4b4b' : '#169b6b'; // Red for low, Green for high
+        return `<tr>
+            <td>${s.id}</td>
+            <td>${s.name}</td>
+            <td>${s.course}</td>
+            <td>${s.year}</td>
+            <td>${s.campus}</td>
+            <td style="color:${color}; font-weight:bold;">${s.att}%</td>
+        </tr>`;
+    }).join("") || `<tr><td colspan="6" style="text-align:center; padding:20px; color:#888;">No students found for the selected filters.</td></tr>`;
+}
+
+function resetAttFilters() {
+    document.getElementById("attFilterCampus").value = "All Campuses";
+    document.getElementById("attFilterYear").value = "All Years";
+    document.getElementById("attFilterGroup").value = "All Groups";
+    document.getElementById("attFilterExam").value = "All Exams";
+    document.getElementById("attRangeInput").value = "";
+    document.getElementById("attSearchInput").value = "";
+    renderFilteredAttendance();
+}
+// ==================== END ATTENDANCE LOGIC ====================
+
+
+async function saveResult() {
+    let id = document.getElementById("resultStudent").value;
+    let student = allStudents.find(s => s.id === id);
+    let exam = document.getElementById("examName").value.trim();
+    let score = document.getElementById("score").value.trim();
+    
+    if (!student) return;
+    
+    if(currentAdminCampus !== "All Campuses" && !matchCampus(student.campus, currentAdminCampus)) {
+        alert("Access Denied: This student belongs to another campus.");
+        return;
+    }
+
+    if (!exam || !score) { alert("Enter valid result details."); return; }
+    results.push({ id, name: student.name, exam, score });
+    let sIndex = allStudents.findIndex(s => s.id === id);
+    if(!allStudents[sIndex].results) allStudents[sIndex].results = [];
+    allStudents[sIndex].results.push({ test: exam, score: score, exam: exam, marks: score });
+    
+    if (window.SchoolAPI) {
+        try {
+            await window.SchoolAPI.updateStudent(id, { results: allStudents[sIndex].results });
+        } catch (e) {
+            console.error("Result save error:", e);
+        }
+    }
+    
+    persist(); renderAll(); alert("Result saved!");
+    document.getElementById("examName").value = ""; document.getElementById("score").value = "";
+}
+
+function renderResults() {
+    let myStudents = getMyStudents();
+    let myIds = myStudents.map(s => s.id);
+    
+    document.getElementById("resultTable").innerHTML = results.filter(r => myIds.includes(r.id)).map((r, i) => `
+    <tr><td>${r.id}</td><td>${r.name}</td><td>${r.exam}</td><td>${r.score}</td></tr>`).join("");
+}
+
+async function addAchievement() {
+    let title = document.getElementById("achievementTitle").value.trim();
+    let description = document.getElementById("achievementDescription").value.trim();
+    if (!title || !description) { alert("Enter achievement title and description."); return; }
+    
+    const newAch = { title, description };
+    if (window.SchoolAPI) {
+        try {
+            const res = await window.SchoolAPI.addAchievement(newAch);
+            if (res && res.achievement && res.achievement.id) {
+                newAch.id = res.achievement.id;
+            }
+            const fresh = await window.SchoolAPI.getAchievements();
+            if (Array.isArray(fresh) && fresh.length > 0) {
+                achievements = fresh;
+                document.getElementById("achievementTitle").value = "";
+                document.getElementById("achievementDescription").value = "";
+                persist();
+                renderAchievements();
+                return;
+            }
+        } catch (e) {
+            console.error("Achievement save error:", e);
+            alert("Could not save to database: " + (e.message || "Please check session"));
+            return;
+        }
+    }
+    
+    achievements.push(newAch);
+    document.getElementById("achievementTitle").value = "";
+    document.getElementById("achievementDescription").value = "";
+    persist();
+    renderAchievements();
+}
+
+async function executeDeleteAchievement(targetId) {
+    if (window.SchoolAPI && typeof window.SchoolAPI.deleteAchievement === 'function') {
+        try {
+            return await window.SchoolAPI.deleteAchievement(targetId);
+        } catch(e) {
+            console.warn("SchoolAPI.deleteAchievement error, trying direct fetch:", e);
+        }
+    }
+    // Direct fetch fallback ensuring token & auto-auth
+    let token = localStorage.getItem('token');
+    if (!token && window.SchoolAPI && typeof window.SchoolAPI.login === 'function') {
+        try {
+            const l = await window.SchoolAPI.login('ADMIN', 'admin123', 'admin');
+            token = l?.token;
+        } catch(e) {}
+    }
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    
+    let res = await fetch('/api/achievements/' + encodeURIComponent(targetId), {
+        method: 'DELETE',
+        headers
+    });
+    if (!res.ok && res.status === 401 && window.SchoolAPI && typeof window.SchoolAPI.login === 'function') {
+        try {
+            const l = await window.SchoolAPI.login('ADMIN', 'admin123', 'admin');
+            if (l?.token) {
+                headers['Authorization'] = 'Bearer ' + l.token;
+                res = await fetch('/api/achievements/' + encodeURIComponent(targetId), {
+                    method: 'DELETE',
+                    headers
+                });
+            }
+        } catch(e) {}
+    }
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || ('Server error: ' + res.status));
+    }
+    return await res.json();
+}
+
+async function deleteAchievement(index) {
+    if (!confirm("Are you sure you want to delete this achievement?")) return;
+    const ach = achievements[index];
+    if (!ach) return;
+
+    try {
+        const targetId = ach.id || ach.title;
+        await executeDeleteAchievement(targetId);
+    } catch (e) {
+        console.error("Achievement delete error:", e);
+        try {
+            // Also try deleting by title as second attempt
+            if (ach.title) {
+                await executeDeleteAchievement(ach.title);
+            }
+        } catch (err2) {
+            console.error("Secondary delete error:", err2);
+            alert("Failed to delete from server: " + (err2.message || "Session error"));
+            return;
+        }
+    }
+
+    try {
+        if (window.SchoolAPI && typeof window.SchoolAPI.getAchievements === 'function') {
+            const fresh = await window.SchoolAPI.getAchievements();
+            if (Array.isArray(fresh)) {
+                achievements = fresh;
+                persist();
+                renderAchievements();
+                return;
+            }
+        } else {
+            const res = await fetch('/api/achievements');
+            const data = await res.json();
+            if (data && Array.isArray(data.achievements)) {
+                achievements = data.achievements;
+                persist();
+                renderAchievements();
+                return;
+            }
+        }
+    } catch (e) { /* ignore */ }
+
+    achievements.splice(index, 1);
+    persist();
+    renderAchievements();
+}
+
+function renderAchievements() {
+    const countEl = document.getElementById("achievementCount");
+    if (countEl) countEl.textContent = achievements.length || "";
+    if (achievements.length === 0) {
+        document.getElementById("achievementList").innerHTML = '<p style="color:#999;text-align:center;padding:30px 0;">No achievements added yet. Add one above!</p>';
+        return;
+    }
+    document.getElementById("achievementList").innerHTML = achievements.map((a, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;margin-bottom:10px;background:#fafcfe;border:1px solid #e8eff5;border-left:4px solid #e9bd45;border-radius:10px;transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.07)'" onmouseout="this.style.boxShadow='none'">
+        <div style="display:flex;align-items:center;gap:14px;flex:1;">
+            <div style="width:42px;height:42px;background:linear-gradient(135deg,#e9bd45,#f0d78c);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🏆</div>
+            <div>
+                <div style="font-weight:700;color:#164e70;font-size:15px;margin-bottom:3px;">${a.title}</div>
+                <div style="color:#666;font-size:13px;">${a.description}</div>
+            </div>
+        </div>
+        <button onclick="deleteAchievement(${i})" title="Delete achievement" style="width:36px;height:36px;border-radius:50%;border:1px solid #eee;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:16px;transition:all 0.2s;flex-shrink:0;padding:0;" onmouseover="this.style.color='#e74c3c';this.style.borderColor='#e74c3c';this.style.background='#fef2f2'" onmouseout="this.style.color='#ccc';this.style.borderColor='#eee';this.style.background='#fff'">✕</button>
+    </div>`).join("");
+}
+
+function renderDashboard() {
+    let myStudents = getMyStudents();
+    
+    let collection = 0, pending = 0;
+    myStudents.forEach(s => {
+        let f = fees[s.id] || { total: 0, paid: 0 };
+        collection += f.paid; pending += f.total - f.paid;
+    });
+    let totalAtt = 0;
+    myStudents.forEach(s => totalAtt += Number(s.att));
+    let avgAtt = myStudents.length ? Math.round(totalAtt / myStudents.length) : 0;
+    
+    document.getElementById("totalStudents").textContent = myStudents.length;
+    document.getElementById("totalCollection").textContent = money(collection);
+    document.getElementById("pendingFees").textContent = money(pending);
+    document.getElementById("averageAttendance").textContent = avgAtt + "%";
+    document.getElementById("recentStudents").innerHTML = myStudents.slice(-5).reverse().map(s => `<tr><td>${s.id}</td><td><strong style="font-size: 15px; color: #164e70;">${s.name}</strong></td><td>${(s.course||"").replace(/\bAP\s+EAPCET\b/gi,"EAPCET").replace(/\beapset\b/gi,"EAPCET")}</td><td>${s.year}</td></tr>`).join("");
+}
+
+window.onload = async function() {
+    if (window.SchoolAPI) {
+        try {
+            const data = await window.SchoolAPI.syncDashboard('admin');
+            if (data && data.students && data.students.length > 0) allStudents = data.students;
+            if (data && data.fees && Object.keys(data.fees).length > 0) fees = data.fees;
+            if (data && Array.isArray(data.notices)) {
+                adminNotices = data.notices.filter(n => n.type === 'admin');
+                globalNotices = data.notices.filter(n => n.type === 'global' || !n.type);
+                persist();
+            }
+            if (data && Array.isArray(data.achievements)) {
+                achievements = data.achievements;
+            }
+        } catch (e) {
+            console.warn('Backend sync:', e.message);
+        }
+    }
+
+    // Reconstruct results table from student documents
+    results = [];
+    allStudents.forEach(s => {
+        if (s.results && Array.isArray(s.results)) {
+            s.results.forEach(r => {
+                results.push({
+                    id: s.id,
+                    name: s.name,
+                    exam: r.exam || r.test || 'Exam',
+                    score: r.marks || r.score || 'N/A'
+                });
+            });
+        }
+    });
+
+    lockCampusFilters();
+    document.getElementById('adminCampusLabel').textContent = `${currentAdminCampus} Administrator Portal`;
+    updateAdminHeader();
+
+    let genderDropdown = document.getElementById("sgender");
+    let genderLocked = document.getElementById("sgenderLocked");
+
+    if (currentAdminCampus.includes("Girls") || currentAdminCampus.includes("girl")) {
+        if (genderDropdown) genderDropdown.style.display = "none";
+        if (genderLocked) {
+            genderLocked.style.display = "block";
+            genderLocked.value = "Female";
+        }
+    } else if (currentAdminCampus.includes("Boys") || currentAdminCampus.includes("boy")) {
+        if (genderDropdown) genderDropdown.style.display = "none";
+        if (genderLocked) {
+            genderLocked.style.display = "block";
+            genderLocked.value = "Male";
+        }
+    } else {
+        if (genderDropdown) genderDropdown.style.display = "block";
+        if (genderLocked) genderLocked.style.display = "none";
+    }
+    
+    let now = new Date();
+    let monthStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    document.getElementById("tfMonth").value = monthStr;
+
+    renderAll();
+};
+
+function renderAll() {
+    renderNotices();
+    fillDropdowns(); 
+    renderStudents(); 
+    
+    // New Dynamic Fee & Attendance Renders
+    renderFilteredFees(); 
+    renderFilteredAttendance();
+    
+    calculateTargets(); 
+    renderResults(); 
+    renderAchievements(); 
+    renderDashboard();
+}
+
+renderAll();
+
+/* =============== BULK RESULTS UPLOAD =============== */
+let parsedResultsData = [];
+
+function downloadResultsTemplate() {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([
+        ['Student ID', 'Student Name', 'Exam Name', 'Marks', 'Date'],
+        ['SV001', 'Example Student', 'Unit Test 1', 85, new Date().toISOString().split('T')[0]],
+    ]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Results_Template');
+    XLSX.writeFile(wb, 'Exam_Results_Template.xlsx');
+}
+
+function previewResultsFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const ws = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false });
+        if (rows.length < 2) { alert('File is empty or has no data rows.'); return; }
+        const header = rows[0].map(h => String(h).trim().toLowerCase());
+        const idCol = header.findIndex(h => h.includes('student id') || h === 'id');
+        const nameCol = header.findIndex(h => h.includes('student name') || h.includes('name'));
+        const examCol = header.findIndex(h => h.includes('exam'));
+        const marksCol = header.findIndex(h => h.includes('mark') || h.includes('score'));
+        const dateCol = header.findIndex(h => h.includes('date'));
+        if (idCol < 0 || examCol < 0 || marksCol < 0) {
+            alert('Missing required columns. Ensure "Student ID", "Exam Name", "Marks" columns exist.');
+            return;
+        }
+        parsedResultsData = [];
+        let tableHtml = '<table><thead><tr><th>#</th><th>Student ID</th><th>Student Name</th><th>Exam Name</th><th>Marks</th><th>Date</th><th>Status</th></tr></thead><tbody>';
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const studentId = idCol >= 0 ? String(row[idCol] || '').trim() : '';
+            const studentName = nameCol >= 0 ? String(row[nameCol] || '').trim() : '';
+            const examName = examCol >= 0 ? String(row[examCol] || '').trim() : '';
+            const marks = marksCol >= 0 ? row[marksCol] : '';
+            const date = dateCol >= 0 ? String(row[dateCol] || '').trim() : '';
+            if (!studentId && !examName) continue;
+            let errors = [];
+            if (!studentId) errors.push('Missing Student ID');
+            if (!examName) errors.push('Missing Exam Name');
+            if (marks === '' || isNaN(Number(marks))) errors.push('Invalid Marks');
+            const student = myStudents.find(s => s.id === studentId.toUpperCase());
+            if (studentId && !student) errors.push('Student not found');
+            if (student && studentName && student.name.toLowerCase() !== studentName.toLowerCase()) errors.push('Name mismatch');
+            const isValid = errors.length === 0;
+            parsedResultsData.push({ studentId, studentName: student ? student.name : studentName, examName, marks, date, valid: isValid, error: errors.join('; ') });
+            tableHtml += `<tr style="background:${isValid ? '#f0fdf4' : '#fff1f2'}">
+                <td style="padding:6px 10px;border:1px solid #e2e8f0;">${i}</td>
+                <td style="padding:6px 10px;border:1px solid #e2e8f0;font-weight:600;">${studentId}</td>
+                <td style="padding:6px 10px;border:1px solid #e2e8f0;">${studentName}</td>
+                <td style="padding:6px 10px;border:1px solid #e2e8f0;">${examName}</td>
+                <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:right;">${marks}</td>
+                <td style="padding:6px 10px;border:1px solid #e2e8f0;">${date}</td>
+                <td style="padding:6px 10px;border:1px solid #e2e8f0;">${isValid ? '✅ Valid' : '❌ ' + errors.join(', ')}</td>
+            </tr>`;
+        }
+        tableHtml += '</tbody></table>';
+        const validCount = parsedResultsData.filter(r => r.valid).length;
+        document.getElementById('resultsPreviewArea').style.display = 'block';
+        document.getElementById('resultsPreviewTable').innerHTML = tableHtml;
+        document.getElementById('resultsValidationMsg').innerHTML = `<strong style="color:#166534;">✅ ${validCount} valid</strong> &nbsp; <strong style="color:#dc2626;">❌ ${parsedResultsData.length - validCount} invalid</strong> (will be skipped)`;
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+async function submitBulkResults() {
+    const validRows = parsedResultsData.filter(r => r.valid);
+    if (validRows.length === 0) { alert('No valid rows to submit.'); return; }
+    if (!confirm(`Submit ${validRows.length} exam result(s)?`)) return;
+    try {
+        const token = localStorage.getItem('adminToken');
+        const resp = await fetch('/api/students/bulk-results', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ results: validRows.map(r => ({ studentId: r.studentId, studentName: r.studentName, examName: r.examName, marks: r.marks, date: r.date })) })
+        });
+        const data = await resp.json();
+        if (data.success) {
+            alert(`✅ Saved ${data.saved} result(s). ${data.errors && data.errors.length ? data.errors.length + ' skipped.' : ''}`);
+            cancelResultsUpload();
+            if (window.SchoolAPI && window.SchoolAPI.syncDashboard) {
+                const syncData = await window.SchoolAPI.syncDashboard('admin');
+                if (syncData && syncData.students && syncData.students.length > 0) { allStudents = syncData.students; renderAll(); }
+            }
+        } else {
+            alert('Error: ' + (data.message || 'Upload failed.'));
+        }
+    } catch (err) {
+        alert('Network error: ' + err.message);
+    }
+}
+
+function cancelResultsUpload() {
+    parsedResultsData = [];
+    document.getElementById('resultsPreviewArea').style.display = 'none';
+    document.getElementById('resultsPreviewTable').innerHTML = '';
+    document.getElementById('resultsFileInput').value = '';
+}
+
+/* =============== ADMIN COLLECTIONS MODAL =============== */
+async function openAdminCollectionsModal() {
+    const token = localStorage.getItem('adminToken');
+    let modalHtml = `<div id="adminCollModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:12px;width:min(820px,95vw);max-height:85vh;overflow-y:auto;padding:28px 24px;position:relative;">
+        <button onclick="document.getElementById('adminCollModal').remove()" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;">✕</button>
+        <h3 style="margin:0 0 16px;font-size:18px;color:#0d4e78;">💰 Fee Collection by Administrator</h3>
+        <div id="adminCollBody"><p style="color:#64748b;">Loading...</p></div>
+        </div></div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    try {
+        const resp = await fetch('/api/fees/admin-collections', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await resp.json();
+        const modalBody = document.getElementById('adminCollBody');
+        if (!data.success || !data.admins || !data.admins.length) {
+            modalBody.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px;">No collection records found. Payment history will appear here once fees are recorded.</p>';
+            return;
+        }
+        let html = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead style="background:#0d4e78;color:#fff;"><tr>
+                <th style="padding:10px 12px;text-align:left;">Administrator</th>
+                <th style="padding:10px 12px;text-align:left;">Campus</th>
+                <th style="padding:10px 12px;text-align:center;">Transactions</th>
+                <th style="padding:10px 12px;text-align:right;">Total Collected</th>
+                <th style="padding:10px 12px;text-align:center;">Details</th>
+            </tr></thead><tbody>`;
+        data.admins.forEach((admin, idx) => {
+            html += `<tr style="border-bottom:1px solid #e2e8f0;background:${idx%2===0?'#f8fafc':'#fff'};">
+                <td style="padding:10px 12px;font-weight:600;">${admin.adminName}</td>
+                <td style="padding:10px 12px;color:#64748b;font-size:12px;">${admin.adminCampus || '—'}</td>
+                <td style="padding:10px 12px;text-align:center;">${admin.transactions}</td>
+                <td style="padding:10px 12px;text-align:right;font-weight:700;color:#166534;">₹${Number(admin.totalAmount).toLocaleString('en-IN')}</td>
+                <td style="padding:10px 12px;text-align:center;">
+                    <button onclick="toggleAdminPayments('ap-${idx}')" style="background:#e0f2fe;color:#0369a1;border:none;padding:4px 12px;border-radius:16px;cursor:pointer;font-size:12px;">View</button>
+                </td>
+            </tr>
+            <tr id="ap-${idx}" style="display:none;">
+                <td colspan="5" style="padding:10px 20px;background:#f0f9ff;">
+                    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                        <thead><tr style="background:#e0f2fe;"><th style="padding:6px 10px;text-align:left;">Date</th><th style="padding:6px 10px;">Student ID</th><th style="padding:6px 10px;">Student Name</th><th style="padding:6px 10px;text-align:right;">Amount</th></tr></thead>
+                        <tbody>${(admin.payments || []).map(p => `<tr><td style="padding:5px 10px;">${p.date}</td><td style="padding:5px 10px;">${p.studentId}</td><td style="padding:5px 10px;">${p.studentName}</td><td style="padding:5px 10px;text-align:right;">₹${Number(p.amount).toLocaleString('en-IN')}</td></tr>`).join('')}</tbody>
+                    </table>
+                </td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        modalBody.innerHTML = html;
+    } catch (err) {
+        document.getElementById('adminCollBody').innerHTML = `<p style="color:#dc2626;">Error: ${err.message}</p>`;
+    }
+}
+
+function toggleAdminPayments(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+}
+
+/* =============== STUDENT TERM-WISE FEE BREAKDOWN MODAL =============== */
+function openStudentTermFeeModal(studentId) {
+    const s = allStudents.find(x => x.id === studentId);
+    if (!s) return;
+    const f = fees[studentId] || { total: 0, paid: 0, history: [] };
+    const totalFee = Number(f.total) || 100000;
+    const paidAmount = Number(f.paid) || 0;
+    const dueAmount = Math.max(0, totalFee - paidAmount);
+    const termFeeAmount = Math.round(totalFee / 3);
+
+    const history = (f.history || f.paymentHistory || []);
+    const sortedHistory = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // Calculate 10 terms breakdown
+    let remainingPaid = paidAmount;
+    let terms = [];
+    for (let t = 1; t <= 3; t++) {
+        let termTarget = (t === 3) ? (totalFee - termFeeAmount * 2) : termFeeAmount;
+        let termPaid = 0;
+        if (remainingPaid >= termTarget) {
+            termPaid = termTarget;
+            remainingPaid -= termTarget;
+        } else if (remainingPaid > 0) {
+            termPaid = remainingPaid;
+            remainingPaid = 0;
+        } else {
+            termPaid = 0;
+        }
+        let termDue = Math.max(0, termTarget - termPaid);
+        let isPaid = termPaid >= termTarget;
+        let isPartial = termPaid > 0 && termPaid < termTarget;
+
+        let termStart = (t - 1) * termFeeAmount;
+        let termEnd = termStart + termTarget;
+        let termPayments = [];
+        for (const inst of sortedHistory) {
+            const instAmt = Number(inst.amount) || 0;
+            const idx = sortedHistory.indexOf(inst);
+            const globalBefore = sortedHistory.slice(0, idx).reduce((acc, x) => acc + (Number(x.amount) || 0), 0);
+            const globalAfter = globalBefore + instAmt;
+            const overlap = Math.min(globalAfter, termEnd) - Math.max(globalBefore, termStart);
+            if (overlap > 0) {
+                termPayments.push({ amount: overlap, date: inst.date || '' });
+            }
+        }
+
+        let dateDisplay = 'Payment due as per schedule';
+        if (isPaid && termPayments.length > 0) {
+            const lastDate = termPayments[termPayments.length - 1].date;
+            dateDisplay = `Fully Paid on ${lastDate ? new Date(lastDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : 'Recent'}`;
+        } else if (isPartial && termPayments.length > 0) {
+            const lastDate = termPayments[termPayments.length - 1].date;
+            dateDisplay = `Last Paid: ${lastDate ? new Date(lastDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : 'Recent'}`;
+        }
+
+        terms.push({
+            num: t,
+            target: termTarget,
+            paid: termPaid,
+            due: termDue,
+            isPaid,
+            isPartial,
+            dateDisplay
+        });
+    }
+
+    let cardsHtml = terms.map(t => {
+        let badgeBg = t.isPaid ? '#dcfce7' : (t.isPartial ? '#fef3c7' : '#fee2e2');
+        let badgeColor = t.isPaid ? '#166534' : (t.isPartial ? '#b45309' : '#991b1b');
+        let badgeText = t.isPaid ? 'Fully Paid' : (t.isPartial ? 'Partially Paid' : 'Pending');
+        let borderCol = t.isPaid ? '#86efac' : (t.isPartial ? '#fcd34d' : '#fca5a5');
+        let cardBg = t.isPaid ? '#ffffff' : (t.isPartial ? '#fffdf5' : '#fffafb');
+
+        return `
+        <div style="background:${cardBg}; border:1px solid ${borderCol}; border-radius:12px; padding:18px; box-shadow:0 3px 10px rgba(0,0,0,0.03);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:15px; font-weight:700; color:#1e293b;">Term ${t.num} Fee</span>
+                <span style="background:${badgeBg}; color:${badgeColor}; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase;">${badgeText}</span>
+            </div>
+            <div style="font-size:22px; font-weight:800; color:${t.isPaid ? '#166534' : (t.isPartial ? '#b45309' : '#dc2626')}; margin-bottom:8px;">
+                ${money(t.target)}
+            </div>
+            <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:8px 12px; border-radius:6px; margin:10px 0; border:1px solid #e2e8f0; font-size:13px;">
+                <div>
+                    <span style="color:#64748b; display:block; font-size:11px; font-weight:700; text-transform:uppercase;">Paid</span>
+                    <strong style="color:${t.paid > 0 ? '#166534' : '#64748b'};">${money(t.paid)}</strong>
+                </div>
+                <div style="text-align:right;">
+                    <span style="color:#64748b; display:block; font-size:11px; font-weight:700; text-transform:uppercase;">Due</span>
+                    <strong style="color:${t.due > 0 ? '#dc2626' : '#166534'};">${money(t.due)}</strong>
+                </div>
+            </div>
+            <div style="font-size:12px; color:${t.isPaid ? '#166534' : (t.isPartial ? '#92400e' : '#64748b')}; font-weight:500;">
+                📅 ${t.dateDisplay}
+            </div>
+        </div>`;
+    }).join('');
+
+    let modalHtml = `
+    <div id="studentTermFeeModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:#fff;border-radius:14px;width:min(960px,96vw);max-height:90vh;overflow-y:auto;padding:26px 28px;position:relative;box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+            <button onclick="document.getElementById('studentTermFeeModal').remove()" style="position:absolute;top:16px;right:18px;background:none;border:none;font-size:24px;cursor:pointer;color:#64748b;">✕</button>
+            <div style="border-bottom:1px solid #e2e8f0; padding-bottom:14px; margin-bottom:18px;">
+                <h3 style="margin:0 0 6px; font-size:20px; color:#0d4e78;">🎓 Student Fee Details – ${s.name} (${s.id})</h3>
+                <div style="display:flex; gap:18px; flex-wrap:wrap; font-size:13px; color:#475569;">
+                    <span><strong>Campus:</strong> ${s.campus}</span>
+                    <span><strong>Course:</strong> ${s.course}</span>
+                    <span><strong>Academic Year:</strong> ${s.year}</span>
+                </div>
+            </div>
+
+            <!-- Summary Bar -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:22px;">
+                <div style="background:#f0f9ff; border-left:4px solid #0284c7; padding:12px 16px; border-radius:8px;">
+                    <span style="font-size:12px; color:#0369a1; text-transform:uppercase; font-weight:700;">Total Annual Fee</span>
+                    <h3 style="margin:4px 0 0; color:#0c4a6e; font-size:20px;">${money(totalFee)}</h3>
+                </div>
+                <div style="background:#f0fdf4; border-left:4px solid #16a34a; padding:12px 16px; border-radius:8px;">
+                    <span style="font-size:12px; color:#15803d; text-transform:uppercase; font-weight:700;">Total Paid</span>
+                    <h3 style="margin:4px 0 0; color:#14532d; font-size:20px;">${money(paidAmount)}</h3>
+                </div>
+                <div style="background:#fef2f2; border-left:4px solid #dc2626; padding:12px 16px; border-radius:8px;">
+                    <span style="font-size:12px; color:#b91c1c; text-transform:uppercase; font-weight:700;">Remaining Due</span>
+                    <h3 style="margin:4px 0 0; color:#7f1d1d; font-size:20px;">${money(dueAmount)}</h3>
+                </div>
+            </div>
+
+            <h4 style="margin:0 0 14px; color:#1e293b; font-size:16px;">3-Term Fee Breakdown (Strictly 3 Terms)</h4>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px;">
+                ${cardsHtml}
+            </div>
+            
+            <div style="text-align:right; margin-top:22px;">
+                <button class="primary" onclick="document.getElementById('studentTermFeeModal').remove()" style="padding:10px 22px;">Close</button>
+            </div>
+        </div>
+    </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+</script>
+</body>
+</html>

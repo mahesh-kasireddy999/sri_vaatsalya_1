@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Access - Sri Vaatsalya Junior College</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <script>
+        // Check URL parameter and redirect immediately to the dedicated single-role login page
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const role = params.get('role');
+            if (role === 'student') {
+                window.location.replace('student-login.html');
+            } else if (role === 'admin') {
+                window.location.replace('admin-login.html');
+            } else if (role === 'superadmin' || role === 'administrator') {
+                window.location.replace('administrator-login.html');
+            }
+        })();
+    </script>
+
+    <style>
+        :root {
+            --primary-blue: #0a3d62;
+            --accent-gold: #d4af37;
+            --bg-light: #f4f7f9;
+            --white: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgba(10,61,98,0.95), rgba(10,61,98,0.85)),
+                        url('classroom.png') center/cover no-repeat fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .gateway-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            padding: 40px 35px;
+            text-align: center;
+            border-top: 6px solid var(--accent-gold);
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gateway-card h1 {
+            color: var(--primary-blue);
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .gateway-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .roles-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .role-option-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-dark);
+            text-align: left;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .role-option-btn:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-gold);
+            background: #fff;
+            box-shadow: 0 10px 20px rgba(10,61,98,0.1);
+        }
+
+        .role-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .icon-student { background: #e0f2fe; color: #0284c7; }
+        .icon-admin { background: #fef3c7; color: #b45309; }
+        .icon-super { background: #f3e8ff; color: #7e22ce; }
+
+        .role-info h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 3px;
+        }
+
+        .role-info p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 0;
+        }
+
+        .back-link {
+            margin-top: 25px;
+        }
+
+        .back-link a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .back-link a:hover {
+            color: var(--accent-gold);
+        }
+    </style>
+</head>
+<body>
+
+<div class="gateway-card">
+    <div style="font-size:38px; color:var(--primary-blue); margin-bottom:12px;">
+        <i class="fa-solid fa-graduation-cap"></i>
+    </div>
+    <h1>Sri Vaatsalya Portals</h1>
+    <p>Please select your login role to proceed to your dedicated portal</p>
+
+    <div class="roles-list">
+        <!-- 1. Student Login -->
+        <a href="student-login.html" class="role-option-btn">
+            <div class="role-icon-box icon-student">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div class="role-info">
+                <h3>Student Login</h3>
+                <p>View personal profile, attendance, 3-term fees & exam results</p>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="margin-left:auto; color:#94a3b8;"></i>
+        </a>
+
+        <!-- 2. Admin Login -->
+        <a href="admin-login.html" class="role-option-btn">
+            <div class="role-icon-box icon-admin">
+                <i class="fa-solid fa-user-tie"></i>
+            </div>
+            <div class="role-info">
+                <h3>Admin Login</h3>
+                <p>Manage campus students, attendance, fee collection & notices</p>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="margin-left:auto; color:#94a3b8;"></i>
+        </a>
+
+        <!-- 3. Administrator Login -->
+        <a href="administrator-login.html" class="role-option-btn">
+            <div class="role-icon-box icon-super">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div class="role-info">
+                <h3>Administrator Login</h3>
+                <p>Full multi-campus administration, targets, fees & staff oversight</p>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="margin-left:auto; color:#94a3b8;"></i>
+        </a>
+    </div>
+
+    <div class="back-link">
+        <a href="index.html">
+            <i class="fa-solid fa-arrow-left"></i> Return to Main Website
+        </a>
+    </div>
+</div>
+
+</body>
+</html>
