@@ -860,57 +860,145 @@
         </div>
     </footer>
 
+    <!-- COMBINED GALLERY SCRIPT (all images + rendering logic) -->
     <script>
-        // Seed gallery items (fallback and initial display)
+        // COMPLETE GALLERY IMAGE LIST (all images from both sources)
         const defaultGallery = [
+            // Existing gallery images
             {
                 id: 'seed-1',
                 title: 'Interactive Concept Teaching',
                 category: 'Classroom',
                 imageUrl: 'gallery-1.jpg',
-                description: 'Senior faculty conducting in-depth subject explanations with active student participation and concept verification.'
+                description: 'Senior faculty conducting in-depth subject explanations with active student participation.'
             },
             {
                 id: 'seed-2',
                 title: 'Girls Campus Learning Environment',
                 category: 'Classroom',
                 imageUrl: 'gallery-2.jpg',
-                description: 'Focused classroom sessions encouraging question resolution, analytical reasoning, and mutual peer learning.'
+                description: 'Focused classroom sessions encouraging question resolution and peer learning.'
             },
             {
                 id: 'seed-3',
                 title: 'Problem Solving Workshops',
                 category: 'Study Session',
                 imageUrl: 'gallery-3.jpg',
-                description: 'Rigorous problem-solving practice sessions reinforcing advanced competitive exam derivation and techniques.'
+                description: 'Problem-solving practice sessions for competitive exams.'
             },
             {
                 id: 'seed-4',
                 title: 'Personalized Doubt Clarification',
                 category: 'Mentorship',
                 imageUrl: 'gallery-4.jpg',
-                description: 'Individual faculty guidance to ensure every student masters challenging formulas, logic, and speed tactics.'
+                description: 'Individual faculty guidance to help students understand difficult concepts.'
             },
             {
                 id: 'seed-5',
                 title: 'Dynamic Student-Faculty Interaction',
                 category: 'Classroom',
                 imageUrl: 'gallery-5.jpg',
-                description: 'Engaging classroom discussions on core sciences and proven test-taking methodologies.'
+                description: 'Engaging classroom discussions on core sciences.'
             },
             {
                 id: 'seed-6',
                 title: 'Desk-to-Desk Evaluation',
                 category: 'Mentorship',
                 imageUrl: 'gallery-6.jpg',
-                description: 'Continuous monitoring, notebook verification, and customized tips for each learner to maximize score potential.'
+                description: 'Continuous monitoring and customized guidance for students.'
             },
             {
                 id: 'seed-7',
                 title: 'Supervised Study Hours',
                 category: 'Study Session',
                 imageUrl: 'gallery-7.jpg',
-                description: 'Disciplined, quiet study environment under constant faculty proctoring to develop intense exam stamina.'
+                description: 'Disciplined study environment under faculty supervision.'
+            },
+
+            // Newly added images from your public folder
+            {
+                id: 'new-1',
+                title: 'Students',
+                category: 'Students',
+                imageUrl: 'students.jpeg',
+                description: 'Students participating in classroom learning activities.'
+            },
+            {
+                id: 'new-2',
+                title: 'Student',
+                category: 'Student',
+                imageUrl: 'student.jpeg',
+                description: 'Students focusing on their academic learning.'
+            },
+            {
+                id: 'new-3',
+                title: 'Student',
+                category: 'Student',
+                imageUrl: 'student1.jpeg',
+                description: 'Students engaged in academic activities.'
+            },
+            {
+                id: 'new-4',
+                title: 'Student',
+                category: 'Student',
+                imageUrl: 'student2.jpeg',
+                description: 'Students taking part in classroom activities.'
+            },
+            {
+                id: 'new-5',
+                title: 'Supervised Study Session',
+                category: 'Study Session',
+                imageUrl: 'study hours.jpeg',
+                description: 'Students attending supervised study hours.'
+            },
+            {
+                id: 'new-6',
+                title: 'Focused Study Hours',
+                category: 'Study Session',
+                imageUrl: 'study hours1.jpeg',
+                description: 'Students practising and preparing for examinations.'
+            },
+            {
+                id: 'new-7',
+                title: 'Doubt Clarification Session',
+                category: 'Mentorship',
+                imageUrl: 'doubt clarification.jpeg',
+                description: 'Faculty helping students clarify their academic doubts.'
+            },
+            {
+                id: 'new-8',
+                title: 'Doubt Resolution',
+                category: 'Mentorship',
+                imageUrl: 'doubt clarification1.jpeg',
+                description: 'Personalized doubt clarification and academic guidance.'
+            },
+            {
+                id: 'new-9',
+                title: 'Classroom Discussion',
+                category: 'Classroom',
+                imageUrl: 'discussion.jpeg',
+                description: 'Students and faculty participating in academic discussions.'
+            },
+            {
+                id: 'new-10',
+                title: 'Interactive Classroom',
+                category: 'Classroom',
+                imageUrl: 'class.jpeg',
+                description: 'Interactive learning and teaching activities.'
+            },
+            {
+                id: 'new-11',
+                title: 'Classroom Learning Environment',
+                category: 'Classroom',
+                imageUrl: 'class room.jpeg',
+                description: 'Learning environment at Sri Vaatsalya.'
+            },
+            {
+                id: 'new-12',
+                title: 'Student-Faculty Interaction',
+                category: 'Mentorship',
+                imageUrl: 'student interaction.jpeg',
+                description: 'Students interacting with faculty members.'
             }
         ];
 
@@ -920,54 +1008,121 @@
         async function fetchGallery() {
             try {
                 const res = await fetch('/api/gallery');
+
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.success && Array.isArray(data.gallery) && data.gallery.length > 0) {
-                        allGalleryItems = data.gallery;
+
+                    if (data.success && Array.isArray(data.gallery)) {
+                        // Keep local images and database images together
+                        const databaseGallery = data.gallery;
+
+                        const combinedGallery = [
+                            ...defaultGallery,
+                            ...databaseGallery
+                        ];
+
+                        // Avoid duplicate image entries
+                        const uniqueImages = [];
+                        const seenImages = new Set();
+
+                        combinedGallery.forEach(item => {
+                            if (!seenImages.has(item.imageUrl)) {
+                                seenImages.add(item.imageUrl);
+                                uniqueImages.push(item);
+                            }
+                        });
+
+                        allGalleryItems = uniqueImages;
                     }
                 }
             } catch (e) {
-                console.log('Using local gallery items fallback:', e.message);
+                console.log('Using local gallery images:', e.message);
             }
+
             renderGallery();
         }
 
         function filterGallery(category) {
             currentFilter = category;
+
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent.includes(category) || (category === 'All' && btn.textContent.includes('All')));
+                btn.classList.toggle(
+                    'active',
+                    btn.textContent.includes(category) ||
+                    (category === 'All' && btn.textContent.includes('All'))
+                );
             });
+
             renderGallery();
         }
 
         function renderGallery() {
             const container = document.getElementById('galleryContainer');
-            const items = currentFilter === 'All' 
-                ? allGalleryItems 
+
+            const items = currentFilter === 'All'
+                ? allGalleryItems
                 : allGalleryItems.filter(item => item.category === currentFilter);
 
             if (items.length === 0) {
-                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: #64748b;"><h3>No images found in this category</h3></div>';
+                container.innerHTML = `
+                    <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#64748b;">
+                        <h3>No images found in this category</h3>
+                    </div>
+                `;
                 return;
             }
 
             container.innerHTML = items.map(item => `
-                <div class="gallery-card" onclick="openLightbox('${item.imageUrl}', '${escapeHtml(item.title)}', '${escapeHtml(item.description || '')}')">
+                <div class="gallery-card"
+                     onclick="openLightbox('${item.imageUrl}',
+                     '${escapeHtml(item.title)}',
+                     '${escapeHtml(item.description || '')}')">
+
                     <div class="card-img-wrapper">
-                        <img src="${item.imageUrl}" alt="${escapeHtml(item.title)}" loading="lazy" onerror="this.src='classroom.png'">
-                        <div class="card-overlay"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
-                        <span class="card-category-badge">${escapeHtml(item.category || 'Campus')}</span>
+
+                        <img src="${item.imageUrl}"
+                             alt="${escapeHtml(item.title)}"
+                             loading="lazy"
+                             onerror="this.src='gallery-1.jpg'">
+
+                        <div class="card-overlay">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                        </div>
+
+                        <span class="card-category-badge">
+                            ${escapeHtml(item.category || 'Campus')}
+                        </span>
+
                     </div>
+
                     <div class="card-content">
+
                         <div>
-                            <h3 class="card-title">${escapeHtml(item.title)}</h3>
-                            <p class="card-desc">${escapeHtml(item.description || 'Sri Vaatsalya Junior College campus life.')}</p>
+                            <h3 class="card-title">
+                                ${escapeHtml(item.title)}
+                            </h3>
+
+                            <p class="card-desc">
+                                ${escapeHtml(item.description || 'Sri Vaatsalya Junior College campus life.')}
+                            </p>
                         </div>
+
                         <div class="card-footer">
-                            <span class="view-btn"><i class="fa-solid fa-expand"></i> Click to Enlarge</span>
-                            <span><i class="fa-solid fa-graduation-cap"></i> Sri Vaatsalya</span>
+
+                            <span class="view-btn">
+                                <i class="fa-solid fa-expand"></i>
+                                Click to Enlarge
+                            </span>
+
+                            <span>
+                                <i class="fa-solid fa-graduation-cap"></i>
+                                Sri Vaatsalya
+                            </span>
+
                         </div>
+
                     </div>
+
                 </div>
             `).join('');
         }
@@ -981,55 +1136,72 @@
         }
 
         function closeLightbox(e) {
-            if (e && e.target !== e.currentTarget && !e.target.classList.contains('lightbox-close')) return;
+            if (
+                e &&
+                e.target !== e.currentTarget &&
+                !e.target.classList.contains('lightbox-close')
+            ) {
+                return;
+            }
+
             document.getElementById('lightboxModal').classList.remove('active');
             document.body.style.overflow = 'auto';
         }
 
         function escapeHtml(str) {
             return (str || '').replace(/[&<>"']/g, function(m) {
-                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[m];
             });
         }
 
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
         });
 
+        // Initialize gallery on page load
         fetchGallery();
     </script>
 
-<script>
-function toggleLoginMenu(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-    const menu = document.getElementById('loginSlideMenu');
-    const btn = document.getElementById('loginToggleBtn');
-    if (!menu) return;
-    const isOpen = menu.classList.toggle('active');
-    if (btn) btn.classList.toggle('active', isOpen);
-}
+    <!-- LOGIN DROPDOWN SCRIPT -->
+    <script>
+        function toggleLoginMenu(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const menu = document.getElementById('loginSlideMenu');
+            const btn = document.getElementById('loginToggleBtn');
+            if (!menu) return;
+            const isOpen = menu.classList.toggle('active');
+            if (btn) btn.classList.toggle('active', isOpen);
+        }
 
-function closeLoginMenu() {
-    const menu = document.getElementById('loginSlideMenu');
-    const btn = document.getElementById('loginToggleBtn');
-    if (menu) menu.classList.remove('active');
-    if (btn) btn.classList.remove('active');
-}
+        function closeLoginMenu() {
+            const menu = document.getElementById('loginSlideMenu');
+            const btn = document.getElementById('loginToggleBtn');
+            if (menu) menu.classList.remove('active');
+            if (btn) btn.classList.remove('active');
+        }
 
-document.addEventListener('click', function(e) {
-    const wrapper = document.getElementById('loginNavWrapper');
-    if (wrapper && !wrapper.contains(e.target)) {
-        closeLoginMenu();
-    }
-});
+        document.addEventListener('click', function(e) {
+            const wrapper = document.getElementById('loginNavWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                closeLoginMenu();
+            }
+        });
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeLoginMenu();
-});
-</script>
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeLoginMenu();
+        });
+    </script>
 
 </body>
 </html>
