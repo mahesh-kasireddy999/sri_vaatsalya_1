@@ -837,21 +837,39 @@ async function loadGalleryAdmin(){
 function escapeGalleryText(value){
   return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 }
-async function saveGalleryImage(){
-  const title=document.getElementById("galleryTitleInput").value.trim();
-  const description=document.getElementById("galleryDescInput").value.trim();
-  const msg=document.getElementById("galleryUploadMessage");
-  if(!title){msg.innerHTML="<span style='color:#dc4b4b;'>Please enter an image title.</span>";return;}
-  if(!galleryUploadDataUrl){msg.innerHTML="<span style='color:#dc4b4b;'>Please choose an image first.</span>";return;}
-  try{
-    if(!window.SchoolAPI)throw new Error("API helper not loaded.");
-    await window.SchoolAPI.request("/api/gallery",{method:"POST",body:JSON.stringify({title,description,imageData:galleryUploadDataUrl})});
-    msg.innerHTML="<span style='color:#169b6b;font-weight:600;'>Image saved successfully!</span>";
+async function saveGalleryImage() {
+  const title = document.getElementById("galleryTitleInput").value.trim();
+  const description = document.getElementById("galleryDescInput").value.trim();
+  const msg = document.getElementById("galleryUploadMessage");
+
+  if (!title) {
+    msg.innerHTML = "<span style='color:#dc4b4b;'>Please enter an image title.</span>";
+    return;
+  }
+  if (!galleryUploadDataUrl) {
+    msg.innerHTML = "<span style='color:#dc4b4b;'>Please choose an image first.</span>";
+    return;
+  }
+
+  msg.innerHTML = "<span style='color:#0d4e78;'>Uploading image...</span>";
+  try {
+    if (!window.SchoolAPI) throw new Error("API helper not loaded.");
+    await window.SchoolAPI.request("/api/gallery", {
+      method: "POST",
+      body: JSON.stringify({
+        title: title,
+        category: "Classroom",
+        description: description,
+        imageBase64: galleryUploadDataUrl
+      })
+    });
+    msg.innerHTML = "<span style='color:#169b6b;font-weight:600;'>Image uploaded successfully!</span>";
     clearGalleryForm();
     await loadGalleryAdmin();
-  }catch(err){
-    console.error(err);
-    msg.innerHTML="<span style='color:#dc4b4b;'>Upload failed. Backend gallery endpoint (/api/gallery) must be implemented and connected.</span>";
+  } catch (err) {
+    console.error("Gallery upload error:", err);
+    msg.innerHTML = "<span style='color:#dc4b4b;font-weight:600;'>Upload failed: "
+      + escapeGalleryText(err.message || "Unknown error") + "</span>";
   }
 }
 async function deleteGalleryImage(id){
