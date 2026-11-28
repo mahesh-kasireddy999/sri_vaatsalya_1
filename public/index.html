@@ -959,6 +959,105 @@ header {
 
 
 
+
+/* Yellow blinking Admissions button; keeps hover preview behavior */
+.nav-admissions-btn {
+    animation: yellowBlink 1s ease-in-out infinite;
+    position: relative;
+    z-index: 2;
+}
+
+@keyframes yellowBlink {
+    0%, 100% { background-color: #ffd700; color: #0d4e78; box-shadow: 0 0 12px #ffd700; opacity: 1; }
+    50% { background-color: #fff3a0; color: #0d4e78; box-shadow: 0 0 0 transparent; opacity: 0.45; }
+}
+
+.admission-hover-container {
+    position: relative;
+}
+
+.admission-hover-preview {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 270px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+    text-decoration: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity .2s ease, transform .2s ease, visibility .2s;
+    z-index: 9999;
+}
+
+.admission-hover-container:hover .admission-hover-preview,
+.admission-hover-container:focus-within .admission-hover-preview {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.admission-hover-preview strong {
+    color: #b91c1c;
+    font-size: 1.15rem;
+    margin: 2px 0 3px;
+}
+
+.preview-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    align-self: flex-start;
+    background: #fee2e2;
+    color: #b91c1c;
+    border-radius: 20px;
+    padding: 5px 9px;
+    font-size: .7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.preview-field {
+    display: block;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 9px 10px;
+    font-size: .75rem;
+}
+
+.preview-apply {
+    display: block;
+    text-align: center;
+    color: white;
+    background: #ef4444;
+    border-radius: 7px;
+    padding: 10px;
+    margin-top: 3px;
+    font-size: .85rem;
+    font-weight: 800;
+}
+
+@media (max-width: 1024px) {
+    .admission-hover-preview {
+        right: auto;
+        left: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .nav-admissions-btn { animation-duration: 1.6s; }
+    .admission-hover-preview { width: min(270px, 85vw); }
+}
+
 /* ABOUT US */
 
 
@@ -995,109 +1094,56 @@ header {
 
 
 
-.about-layout-container {
-
+ .about-layout-container {
     display: flex;
-
-    justify-content: space-between;
-
+    justify-content: center;
     align-items: stretch;
-
-    gap: 4%;
-
-    width: 96%;
-
+    width: 95%;
     max-width: 1600px;
-
     margin: auto;
-
 }
-
-
 
 .about-red-box {
-
-    flex: 0 0 65%;
-
+    width: 100%;
     background: #b91c1c;
-
-    border-radius: 8px;
-
+    border-radius: 10px;
     overflow: hidden;
-
     display: flex;
-
     flex-direction: row;
-
     align-items: stretch;
-
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-
-    padding: 30px;
-
-    gap: 30px;
-
+    padding: 35px;
+    gap: 35px;
 }
-
-
 
 .about-image-wrapper {
-
-    flex: 1.2;
-
+    flex: 1;
     min-width: 300px;
-
     display: flex;
-
     align-items: stretch;
-
     justify-content: center;
-
     padding: 0;
-
 }
-
-
 
 .about-image-wrapper img {
-
     width: 100%;
-
     height: 100%;
-
-    min-height: 100%;
-
+    min-height: 400px;
     object-fit: cover;
-
-    border-radius: 5px;
-
+    border-radius: 8px;
     display: block;
-
     border: 2px solid rgba(255,255,255,0.2);
-
 }
-
-
 
 .about-content {
-
     flex: 1;
-
     min-width: 300px;
-
     color: white;
-
     display: flex;
-
     flex-direction: column;
-
     justify-content: space-between;
-
-    padding: 0;
-
+    padding: 10px;
 }
-
-
 
 .about-content p {
 
@@ -2369,6 +2415,47 @@ footer {
 
 }
 
+
+/* ABOUT US ICON DETAILS MODAL */
+.about-icon-box { cursor: pointer; }
+.about-icon-box:focus { outline: 3px solid #fff; outline-offset: 4px; }
+.about-details-modal {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.65); align-items: center; justify-content: center;
+    padding: 20px;
+}
+.about-details-modal.active { display: flex; }
+.about-details-content {
+    background: white; color: #222; width: 100%; max-width: 700px;
+    max-height: 85vh; overflow-y: auto; border-radius: 14px;
+    padding: 30px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,.25);
+}
+.about-details-content h3 { color: #b91c1c; margin: 0 0 15px; font-size: 1.6rem; }
+.about-details-content p, .about-details-content li { line-height: 1.7; }
+.about-details-content ul { padding-left: 22px; }
+.about-details-close {
+    position: absolute; top: 10px; right: 14px; border: none;
+    background: #b91c1c; color: white; border-radius: 50%;
+    width: 38px; height: 38px; font-size: 22px; cursor: pointer;
+}
+@media (max-width: 900px) {
+    .about-red-box { flex-direction: column; }
+    .about-image-wrapper { min-width: 100%; height: 350px; min-height: 350px; }
+    .about-content { width: 100%; min-width: 0; }
+    .about-icons-row { flex-wrap: wrap; }
+    .about-icon-box { flex: 1 1 40%; margin-bottom: 15px; }
+    .about-stats { gap: 30px; }
+}
+@media (max-width: 600px) {
+    .about-section { padding: 40px 0; }
+    .about-title { font-size: 2rem; }
+    .about-red-box { padding: 20px; }
+    .about-image-wrapper { height: 280px; min-height: 280px; }
+    .about-content p { font-size: .9rem; }
+    .about-stats { gap: 20px; }
+    .about-details-content { padding: 25px 20px; }
+}
+
 </style>
 
 </head>
@@ -2557,12 +2644,23 @@ footer {
 
 
 
-        <li>
+        <li class="admission-hover-container">
 
             <a href="admission-form.html" target="_blank" class="nav-admissions-btn">
 
-                Admissions Open
+                <i class="fa-solid fa-file-signature"></i> Admissions Open
 
+            </a>
+
+            <!-- Small application preview appears only while hovering/focusing -->
+            <a href="admission-form.html" target="_blank" class="admission-hover-preview">
+                <span class="preview-badge"><i class="fa-solid fa-circle-check"></i> Admissions Open</span>
+                <strong>Online Application</strong>
+                <span class="preview-field">Enter Student Name</span>
+                <span class="preview-field">Enter Email Address</span>
+                <span class="preview-field">Select Programme (MPC / BiPC)</span>
+                <span class="preview-field">Select Campus</span>
+                <span class="preview-apply">Apply Now <i class="fa-solid fa-arrow-right"></i></span>
             </a>
 
         </li>
@@ -2729,315 +2827,51 @@ footer {
 
 
 
-<!-- ABOUT US -->
-
-
-
+<!-- ABOUT US SECTION (APPLICATION CARD REMOVED) -->
 <section class="about-section">
-
-
-
     <h2 class="about-title">ABOUT US</h2>
-
-
-
     <div class="about-layout-container">
-
-
-
         <div class="about-red-box">
-
-
-
             <div class="about-image-wrapper">
-
-                <img src="about-campus.jpg?v=2.0" alt="Sri Vaatsalya Campus"
-
-                onerror="this.src='about-image.png'">
-
+                <img src="about-campus.jpg?v=2.0" alt="Sri Vaatsalya Campus" onerror="this.src='about-image.png'">
             </div>
-
-
-
             <div class="about-content">
-
-
-
-                <p>
-
-                    <strong>Sri Vaatsalya</strong> is a premier educational institution
-
-                    dedicated to academic excellence, established with a vision to
-
-                    nurture young minds and build a strong foundation for future
-
-                    professionals. We provide a focused and result-oriented learning
-
-                    environment, especially for BiPC and medical aspirants, with
-
-                    expert faculty, modern infrastructure, and personalized guidance.
-
-                </p>
-
-
-
-                <p>
-
-                    Sri Vaatsalya offers a wide range of programs that foster deep
-
-                    subject knowledge, critical thinking, and a passion for learning.
-
-                    With state-of-the-art classrooms, well-equipped labs, and a
-
-                    student-centric approach, we are committed to shaping future
-
-                    doctors, researchers, and leaders in the field of life sciences
-
-                    and healthcare.
-
-                </p>
-
-
-
-                <p>
-
-                    Our consistent academic performance and student success reflect
-
-                    our unwavering commitment to quality education and holistic
-
-                    development.
-
-                </p>
-
-
-
+                <p><strong>Sri Vaatsalya</strong> is a premier educational institution dedicated to academic excellence, established with a vision to nurture young minds and build a strong foundation for future professionals. We provide a focused and result-oriented learning environment, especially for BiPC and medical aspirants, with expert faculty, modern infrastructure, and personalized guidance.</p>
+                <p>Sri Vaatsalya offers a wide range of programs that foster deep subject knowledge, critical thinking, and a passion for learning. With state-of-the-art classrooms, well-equipped labs, and a student-centric approach, we are committed to shaping future doctors, researchers, and leaders in the field of life sciences and healthcare.</p>
+                <p>Our consistent academic performance and student success reflect our unwavering commitment to quality education and holistic development.</p>
                 <div class="about-icons-row">
-
-
-
-                    <div class="about-icon-box">
-
-                        <div class="circle-icon">
-
-                            <i class="fa-solid fa-bullseye"></i>
-
-                        </div>
-
-                        <p>Introduction</p>
-
+                    <div class="about-icon-box" role="button" tabindex="0" onclick="openAboutDetails('introduction')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAboutDetails('introduction')}" aria-label="Open Introduction details">
+                        <div class="circle-icon"><i class="fa-solid fa-bullseye"></i></div><p>Introduction</p>
                     </div>
-
-
-
-                    <div class="about-icon-box">
-
-                        <div class="circle-icon">
-
-                            <i class="fa-solid fa-rocket"></i>
-
-                        </div>
-
-                        <p>Vision &<br>Mission</p>
-
+                    <div class="about-icon-box" role="button" tabindex="0" onclick="openAboutDetails('vision')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAboutDetails('vision')}" aria-label="Open Vision and Mission details">
+                        <div class="circle-icon"><i class="fa-solid fa-rocket"></i></div><p>Vision &amp;<br>Mission</p>
                     </div>
-
-
-
-                    <div class="about-icon-box">
-
-                        <div class="circle-icon">
-
-                            <i class="fa-solid fa-graduation-cap"></i>
-
-                        </div>
-
-                        <p>Hallmark<br>Points</p>
-
+                    <div class="about-icon-box" role="button" tabindex="0" onclick="openAboutDetails('hallmark')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAboutDetails('hallmark')}" aria-label="Open Hallmark Points details">
+                        <div class="circle-icon"><i class="fa-solid fa-graduation-cap"></i></div><p>Hallmark<br>Points</p>
                     </div>
-
-
-
-                    <div class="about-icon-box">
-
-                        <div class="circle-icon">
-
-                            <i class="fa-solid fa-rocket"></i>
-
-                        </div>
-
-                        <p>Why Join<br>Sri Vaatsalya?</p>
-
+                    <div class="about-icon-box" role="button" tabindex="0" onclick="openAboutDetails('whyjoin')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAboutDetails('whyjoin')}" aria-label="Open Why Join Sri Vaatsalya details">
+                        <div class="circle-icon"><i class="fa-solid fa-star"></i></div><p>Why Join<br>Sri Vaatsalya?</p>
                     </div>
-
-
-
                 </div>
-
             </div>
-
         </div>
-
-
-
-        <!-- ONLINE APPLICATION CARD -->
-
-
-
-        <a href="admission-form.html" target="_blank" class="about-app-card">
-
-
-
-            <div class="app-badge">
-
-                <i class="fa-solid fa-file-signature"></i>
-
-                Admissions Open
-
-            </div>
-
-
-
-            <h3>Online Application<br>Form</h3>
-
-
-
-            <p class="app-desc">
-
-                Take the first step towards a bright future with Sri Vaatsalya
-
-                Junior College.
-
-            </p>
-
-
-
-            <div class="app-form-preview">
-
-
-
-                <input type="text" class="app-input"
-
-                placeholder="Enter Student Name *" readonly>
-
-
-
-                <input type="email" class="app-input"
-
-                placeholder="Enter Email Address *" readonly>
-
-
-
-                <select class="app-select">
-
-                    <option>Select Programme (MPC / BiPC) *</option>
-
-                </select>
-
-
-
-                <select class="app-select">
-
-                    <option>Select Campus *</option>
-
-                </select>
-
-
-
-            </div>
-
-
-
-            <div class="app-feature-banner">
-
-                <i class="fa-solid fa-leaf"></i>
-
-                Expert guidance • Focused coaching • A stronger future
-
-            </div>
-
-
-
-            <button type="button" class="app-submit-btn">
-
-                Apply Now
-
-                <i class="fa-solid fa-arrow-right"></i>
-
-            </button>
-
-
-
-            <p class="app-note">
-
-                Click anywhere to open the complete admissions form.
-
-            </p>
-
-
-
-        </a>
-
-
-
     </div>
-
-
-
-    <!-- STATISTICS -->
-
-
-
     <div class="about-stats">
-
-
-
-        <div class="stat-item">
-
-            <h3></h3>
-
-            <p>EAPCET</p>
-
-        </div>
-
-
-
-        <div class="stat-item">
-
-            <h3></h3>
-
-            <p>JEE MAINS</p>
-
-        </div>
-
-
-
-        <div class="stat-item">
-
-            <h3></h3>
-
-            <p>TOTAL QUALIFICATIONS</p>
-
-        </div>
-
-
-
-        <div class="stat-item">
-
-            <h3></h3>
-
-            <p>QUALIFICATION PERCENTAGE</p>
-
-        </div>
-
-
-
+        <div class="stat-item"><h3></h3><p>EAPCET</p></div>
+        <div class="stat-item"><h3></h3><p>JEE MAINS</p></div>
+        <div class="stat-item"><h3></h3><p>TOTAL QUALIFICATIONS</p></div>
+        <div class="stat-item"><h3></h3><p>QUALIFICATION PERCENTAGE</p></div>
     </div>
-
-
-
 </section>
 
-
+<!-- ABOUT US ICON POPUP -->
+<div class="about-details-modal" id="aboutDetailsModal" onclick="if(event.target===this)closeAboutDetails()">
+    <div class="about-details-content" role="dialog" aria-modal="true" aria-labelledby="aboutDetailsTitle">
+        <button class="about-details-close" type="button" onclick="closeAboutDetails()" aria-label="Close popup">&times;</button>
+        <h3 id="aboutDetailsTitle"></h3>
+        <div id="aboutDetailsBody"></div>
+    </div>
+</div>
 
 <!-- RESEARCH BULLETIN -->
 
@@ -3776,6 +3610,44 @@ document.addEventListener('keydown', function(e) {
 </script>
 
 
+
+
+<script>
+// Displays the selected About Us topic in a popup window.
+const aboutDetails = {
+    introduction: {
+        title: 'Introduction',
+        body: `<p>Sri Vaatsalya Junior College is committed to providing quality education, academic discipline and a supportive learning environment. We help students build a strong foundation, develop confidence and prepare for competitive examinations and future careers.</p>`
+    },
+    vision: {
+        title: 'Vision & Mission',
+        body: `<p><strong>Vision:</strong> To empower students with knowledge, confidence, values and skills to achieve their goals and contribute meaningfully to society.</p><p><strong>Mission:</strong> To provide focused teaching, individual guidance, a disciplined environment and opportunities that encourage academic excellence and holistic development.</p>`
+    },
+    hallmark: {
+        title: 'Hallmark Points',
+        body: `<ul><li>Focused coaching for competitive examinations.</li><li>Experienced and supportive faculty.</li><li>Regular assessments and performance feedback.</li><li>Concept-based learning and doubt clarification.</li><li>Student-centred academic guidance.</li><li>Encouragement of discipline, confidence and independent learning.</li></ul>`
+    },
+    whyjoin: {
+        title: 'Why Join Sri Vaatsalya?',
+        body: `<ul><li>A focused academic atmosphere.</li><li>Personalized guidance for students.</li><li>Structured preparation and regular practice.</li><li>Support for academic and personal development.</li><li>A learning environment designed to help students work towards their ambitions.</li></ul>`
+    }
+};
+function openAboutDetails(topic) {
+    const item = aboutDetails[topic];
+    if (!item) return;
+    document.getElementById('aboutDetailsTitle').textContent = item.title;
+    document.getElementById('aboutDetailsBody').innerHTML = item.body;
+    document.getElementById('aboutDetailsModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeAboutDetails() {
+    document.getElementById('aboutDetailsModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') closeAboutDetails();
+});
+</script>
 
 </body>
 

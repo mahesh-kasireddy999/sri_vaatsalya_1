@@ -186,6 +186,14 @@ main{margin-left:65px;width:calc(100% - 65px);padding:12px}
 .perf-detail-meta { margin-left: 0; text-align: center; margin-top: 15px; }
 .search-row { flex-direction: column; align-items: stretch; }
 }
+
+
+/* Gallery admin cards */
+.gallery-admin-card{border:1px solid #e5eaf0;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 3px 12px #00000008;}
+.gallery-admin-card img{width:100%;height:230px;object-fit:cover;display:block;}
+.gallery-admin-card .gallery-admin-content{padding:16px;}
+.gallery-admin-card h4{color:#0d4e78;margin-bottom:8px;}
+.gallery-admin-card p{color:#64748b;font-size:14px;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -203,7 +211,7 @@ main{margin-left:65px;width:calc(100% - 65px);padding:12px}
     <button onclick="showPage('fees',this)">💰 Fees</button>
     <button onclick="showPage('results',this)">📚 Exam Results</button>
     <button onclick="showPage('achievements',this)">🏆 Achievements</button>
-    <!--button onclick="showPage('gallery',this)">🖼️ Gallery Management</button-->
+    <button onclick="showPage('gallery',this); loadGalleryAdmin();">🖼️ Gallery</button>
     <button class="logout" onclick="window.location.href='login.html'">↪ Logout</button>
 </aside>
 
@@ -755,10 +763,111 @@ main{margin-left:65px;width:calc(100% - 65px);padding:12px}
     <div class="card"><h3 style="display:flex;align-items:center;gap:8px;">🏆 College Achievements <span id="achievementCount" style="background:#e9bd45;color:#fff;font-size:12px;padding:2px 10px;border-radius:20px;font-weight:700;"></span></h3><div id="achievementList"></div></div>
 </section>
 
+<!-- ==================== GALLERY MANAGEMENT ==================== -->
+<section id="gallery" class="page">
+  <div class="card" style="border-left:5px solid #0d4e78;">
+    <h3>🖼️ Homepage Gallery Management</h3>
+    <p style="color:#64748b;margin-bottom:16px;">Upload images for the homepage gallery. Enter the image title and description, preview, then save.</p>
+    <label>Image Title (e.g. Student)</label>
+    <input id="galleryTitleInput" type="text" placeholder="Enter image title">
+    <label>Image Description</label>
+    <textarea id="galleryDescInput" rows="3" placeholder="Enter image description"></textarea>
+    <label>Select Image</label>
+    <input id="galleryImageInput" type="file" accept="image/*" onchange="previewGalleryUpload(event)">
+    <div id="galleryUploadPreview" style="display:none;margin:15px 0;padding:12px;background:#f8fafc;border:1px solid #dbe5ee;border-radius:12px;">
+      <strong style="display:block;margin-bottom:8px;color:#0d4e78;">Image Preview</strong>
+      <img id="galleryPreviewImg" alt="Selected gallery image preview" style="width:100%;max-width:550px;height:300px;object-fit:cover;border-radius:12px;border:2px solid #e9bd45;display:block;">
+    </div>
+    <div class="actions">
+      <button class="primary" onclick="saveGalleryImage()">⬆ Upload to Gallery</button>
+      <button class="light" onclick="clearGalleryForm()">Clear</button>
+    </div>
+    <div id="galleryUploadMessage" style="margin-top:12px;"></div>
+  </div>
+  <div class="card">
+    <h3>Gallery Images</h3>
+    <div id="adminGalleryGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;"></div>
+  </div>
+</section>
+
 </main>
 
 <script src="js/api.js?v=2.3"></script>
 <script>
+/* Gallery management: uses the backend API /api/gallery */
+let galleryUploadDataUrl = "";
+function previewGalleryUpload(event){
+  const file=event.target.files && event.target.files[0];
+  if(!file){galleryUploadDataUrl="";return;}
+  if(!file.type.startsWith("image/")){alert("Please select an image file.");event.target.value="";return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    galleryUploadDataUrl=reader.result;
+    document.getElementById("galleryPreviewImg").src=galleryUploadDataUrl;
+    document.getElementById("galleryUploadPreview").style.display="block";
+  };
+  reader.readAsDataURL(file);
+}
+function clearGalleryForm(){
+  document.getElementById("galleryTitleInput").value="";
+  document.getElementById("galleryDescInput").value="";
+  document.getElementById("galleryImageInput").value="";
+  document.getElementById("galleryUploadPreview").style.display="none";
+  document.getElementById("galleryUploadMessage").innerHTML="";
+  galleryUploadDataUrl="";
+}
+async function loadGalleryAdmin(){
+  const grid=document.getElementById("adminGalleryGrid");
+  if(!grid)return;
+  grid.innerHTML="<p>Loading gallery...</p>";
+  try{
+    if(!window.SchoolAPI) throw new Error("API helper not loaded.");
+    const data=await window.SchoolAPI.request("/api/gallery");
+    const items=Array.isArray(data)?data:(data.gallery||data.images||[]);
+    if(!items.length){grid.innerHTML="<p>No gallery images yet. Upload your first image above.</p>";return;}
+    grid.innerHTML=items.map(item=>{
+      const img=item.imageUrl||item.image||item.data||item.imageData||"";
+      const title=item.title||"Gallery Image";
+      const desc=item.description||item.caption||"";
+      const id=item._id||item.id;
+      return `<div class="gallery-admin-card" style="background:#fff;border:1px solid #dbe5ee;border-radius:14px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.06);"><img src="${img}" alt="${escapeGalleryText(title)}" style="width:100%;height:220px;object-fit:cover;display:block;"><div class="gallery-admin-content" style="padding:16px;"><h4 style="margin:0 0 8px;color:#0d4e78;">${escapeGalleryText(title)}</h4><p style="margin:0;color:#64748b;">${escapeGalleryText(desc)}</p><button class="red" style="margin-top:12px;background:#dc3545;color:#fff;border:0;padding:9px 16px;border-radius:7px;cursor:pointer;" onclick="deleteGalleryImage('${id}')">🗑️ Delete Image</button></div></div>`;
+    }).join("");
+  }catch(err){grid.innerHTML="<div style='padding:12px;border:1px solid #fecaca;background:#fff7f7;border-radius:10px;color:#b91c1c;'><strong>Gallery API connection failed.</strong><br>Backend must provide GET /api/gallery. Check that the server is running and the route is implemented.<br><small>Details: "+escapeGalleryText(err.message||String(err))+"</small></div>";console.error(err);}
+}
+function escapeGalleryText(value){
+  return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+async function saveGalleryImage(){
+  const title=document.getElementById("galleryTitleInput").value.trim();
+  const description=document.getElementById("galleryDescInput").value.trim();
+  const msg=document.getElementById("galleryUploadMessage");
+  if(!title){msg.innerHTML="<span style='color:#dc4b4b;'>Please enter an image title.</span>";return;}
+  if(!galleryUploadDataUrl){msg.innerHTML="<span style='color:#dc4b4b;'>Please choose an image first.</span>";return;}
+  try{
+    if(!window.SchoolAPI)throw new Error("API helper not loaded.");
+    await window.SchoolAPI.request("/api/gallery",{method:"POST",body:JSON.stringify({title,description,imageData:galleryUploadDataUrl})});
+    msg.innerHTML="<span style='color:#169b6b;font-weight:600;'>Image saved successfully!</span>";
+    clearGalleryForm();
+    await loadGalleryAdmin();
+  }catch(err){
+    console.error(err);
+    msg.innerHTML="<span style='color:#dc4b4b;'>Upload failed. Backend gallery endpoint (/api/gallery) must be implemented and connected.</span>";
+  }
+}
+async function deleteGalleryImage(id){
+  if(!id || id === "undefined" || id === "null"){alert("This image has no database ID, so it cannot be deleted.");return;}
+  const confirmed=confirm("Are you sure you want to delete this gallery image? This will remove it from the gallery after the server confirms.");
+  if(!confirmed)return;
+  try{
+    if(!window.SchoolAPI)throw new Error("API helper not loaded.");
+    await window.SchoolAPI.request("/api/gallery/"+encodeURIComponent(id),{method:"DELETE"});
+    alert("Gallery image deleted successfully.");
+    await loadGalleryAdmin();
+  }catch(err){
+    alert("Delete failed. The backend DELETE /api/gallery/:id route may not be connected.");
+    console.error(err);
+  }
+}
 /* ================= DATA SETUP ================= */
 const COURSE_FEES = { "MPC - JEE Advanced": 150000, "MPC - JEE Mains": 125000, "MPC - EAPCET": 100000, "MPC - AP EAPCET": 100000, "MPC - eapset": 100000, "BiPC - NEET": 150000, "BiPC - EAPCET": 100000, "BiPC - AP EAPCET": 100000, "BiPC - eapset": 100000 };
 const HOSTEL_FEE = 60000; const TRANSPORT_FEE = 15000;
