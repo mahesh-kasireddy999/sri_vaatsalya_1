@@ -172,7 +172,7 @@ router.delete('/:id', protect, authorize('admin', 'superadmin'), async (req, res
 
     if (!doc) {
       // Check if it's matching by id
-      await Gallery.delete({ _id: rawId });
+      await Gallery.remove({ _id: rawId });
       return res.json({ success: true, message: 'Item removed from gallery.' });
     }
 
@@ -184,7 +184,7 @@ router.delete('/:id', protect, authorize('admin', 'superadmin'), async (req, res
       }
     }
 
-    await Gallery.delete({ _id: rawId });
+    await Gallery.remove({ _id: rawId });
     res.json({ success: true, message: 'Gallery image deleted successfully.' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
